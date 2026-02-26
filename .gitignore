@@ -1,0 +1,134 @@
+# =====================================================
+# OPERATING SYSTEM FILES
+# =====================================================
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# =====================================================
+# MICROSOFT OFFICE TEMP FILES
+# =====================================================
+
+# Word
+~$*.doc
+~$*.docx
+
+# PowerPoint
+~$*.ppt
+~$*.pptx
+
+# Excel
+~$*.xls
+~$*.xlsx
+
+# Office autosave / recovery
+*.tmp
+*.temp
+*.wbk
+*.bak
+
+# PDF temp files
+~$*.pdf
+*.pdf.tmp
+*.pdf~
+
+# =====================================================
+# PYTHON
+# =====================================================
+
+# Bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+env/
+venv/
+.venv/
+ENV/
+
+# Conda environments
+.env
+*.conda
+*.env.yaml
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+*.log
+
+# =====================================================
+# R / RSTUDIO
+# =====================================================
+
+.Rhistory
+.RData
+.Rproj.user/
+.Ruserdata
+
+# =====================================================
+# QUARTO
+# =====================================================
+
+# Quarto build folders
+_site/
+.quarto/
+
+# Rendered outputs (optional — comment out if you WANT to track HTML)
+*.html
+
+# =====================================================
+# VS CODE
+# =====================================================
+
+.vscode/
+
+# =====================================================
+# LARGE DATA FILES (DO NOT PUSH RAW DATA)
+# =====================================================
+
+# CSVs over time can get huge
+# *.csv
+# *.tsv
+
+# Model objects
+*.rds
+*.RDS
+*.pkl
+*.joblib
+
+# Data files
+*.parquet
+*.feather
+*.h5
+*.hdf5
+*.fits
+
+# Images generated from analysis
+*.png
+*.jpg
+*.jpeg
+
+# =====================================================
+# ARCHIVES
+# =====================================================
+
+*.zip
+*.tar
+*.gz
+*.7z
+
+# =====================================================
+# SECURITY
+# =====================================================
+
+# API keys / secrets
+.env
+*.key
+secrets.yml
+config.yaml
