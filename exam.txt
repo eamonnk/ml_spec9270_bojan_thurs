@@ -1,0 +1,4 @@
+From the lecture chat (to remember)
+The exam will have a theory part and two practical parts which will focus on one of the 4 main family of ml models: information-based, error-based, similarity-based and probability-based. There will be no questions on working with text or reinforcement learning.
+
+I don't remember any examples for the error-based questions in past exam papers, does anybody know what kind of practical questions that would be?

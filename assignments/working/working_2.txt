@@ -1,0 +1,197 @@
+# ── 3.7 log1p transforms ──────────────────────────────
+# campaign — min=1, no negatives or zeros, log1p safe directly
+df_ts_6['campaign']  = np.log1p(df_ts_6['campaign'])
+df_qry_6['campaign'] = np.log1p(df_qry_6['campaign'])
+
+# pdays — -1 already replaced with 0 in step 3.4
+# log1p(0) = 0 exactly — zeros handled cleanly
+df_ts_6['pdays']  = np.log1p(df_ts_6['pdays'])
+df_qry_6['pdays'] = np.log1p(df_qry_6['pdays'])
+
+# previous — zero inflated, log1p(0)=0 cleanly
+df_ts_6['previous']  = np.log1p(df_ts_6['previous'])
+df_qry_6['previous'] = np.log1p(df_qry_6['previous'])
+
+# ── verify ────────────────────────────────────────────
+print("==== verify log1p transforms ====")
+for col in ['campaign', 'pdays', 'previous']:
+    print(f"\n--- {col} ---")
+    print(f" df_ts_6  min={df_ts_6[col].min():.4f}  max={df_ts_6[col].max():.4f}  mean={df_ts_6[col].mean():.4f}")
+    print(f" df_qry_6 min={df_qry_6[col].min():.4f}  max={df_qry_6[col].max():.4f}  mean={df_qry_6[col].mean():.4f}")
+    print(f" any NaN df_ts_6  : {df_ts_6[col].isna().sum()}")
+    print(f" any NaN df_qry_6 : {df_qry_6[col].isna().sum()}")
+
+print(f"\ndf_ts_6  shape : {df_ts_6.shape}")
+print(f"df_qry_6 shape : {df_qry_6.shape}")
+
+-===========3.8 ==================
+
+# ── 3.8 — define feature groups and train/test split ──
+from sklearn.model_selection import train_test_split
+
+# separate features and target
+X = df_ts_6.drop(columns=['y'])
+y = df_ts_6['y']
+
+# numerical features at this point
+# balance, age, day go to RobustScaler
+# campaign, pdays, previous already log1p transformed
+# contacted_previously is binary 0/1 — still scale for LR/KNN
+NUM_COLS = ['age', 'balance', 'day', 'campaign', 
+            'pdays', 'previous', 'contacted_previously']
+
+# categorical features — one-hot encode in pipeline
+CAT_COLS = ['job', 'marital', 'education', 
+            'contact', 'month', 'poutcome']
+
+print(f"X shape     : {X.shape}")
+print(f"y shape     : {y.shape}")
+print(f"NUM_COLS    : {NUM_COLS}")
+print(f"CAT_COLS    : {CAT_COLS}")
+print(f"\nTarget distribution:")
+print(y.value_counts())
+print(y.value_counts(normalize=True).round(3))
+
+# stratified 80/20 split — preserves 88/12 class ratio
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, stratify=y, random_state=42)
+
+print(f"\nX_train shape : {X_train.shape}")
+print(f"X_test  shape : {X_test.shape}")
+print(f"y_train shape : {y_train.shape}")
+print(f"y_test  shape : {y_test.shape}")
+
+# verify stratification preserved class ratio
+print(f"\ny_train class ratio:")
+print(y_train.value_counts(normalize=True).round(3))
+print(f"\ny_test class ratio:")
+print(y_test.value_counts(normalize=True).round(3))
+
+
+======roc plot ====
+
+# ── ROC curve plot for all 5 models ───────────────────
+from sklearn.metrics import roc_curve, auc
+import matplotlib.pyplot as plt
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+
+# ── left plot — ROC curves all models ─────────────────
+colors = ['#7F77DD', '#1D9E75', '#D85A30', '#EF9F27', '#B4B2A9']
+
+for (name, res), color in zip(results.items(), colors):
+    fpr, tpr, _ = roc_curve(y_test, res['y_prob'])
+    roc_auc     = auc(fpr, tpr)
+    axes[0].plot(fpr, tpr, 
+                 label=f"{name} (AUC={roc_auc:.3f})",
+                 color=color, linewidth=2)
+
+# random classifier baseline
+axes[0].plot([0, 1], [0, 1], 
+             linestyle='--', color='grey', 
+             linewidth=1, label='Random (AUC=0.500)')
+
+axes[0].set_title('ROC Curves — All Models', fontsize=13)
+axes[0].set_xlabel('False Positive Rate', fontsize=11)
+axes[0].set_ylabel('True Positive Rate', fontsize=11)
+axes[0].legend(loc='lower right', fontsize=9)
+axes[0].set_xlim([0, 1])
+axes[0].set_ylim([0, 1.02])
+axes[0].grid(alpha=0.3)
+
+# ── right plot — bar chart of ROC-AUC scores ──────────
+model_names = list(results.keys())
+auc_scores  = [res['roc_auc'] for res in results.values()]
+f1_scores   = [res['f1']      for res in results.values()]
+
+x     = range(len(model_names))
+width = 0.35
+
+bars1 = axes[1].bar([i - width/2 for i in x], auc_scores, 
+                     width, label='ROC-AUC', 
+                     color='#7F77DD', alpha=0.85)
+bars2 = axes[1].bar([i + width/2 for i in x], f1_scores,  
+                     width, label='F1 Score', 
+                     color='#F0997B', alpha=0.85)
+
+# add value labels on bars
+for bar in bars1:
+    axes[1].text(bar.get_x() + bar.get_width()/2, 
+                 bar.get_height() + 0.005,
+                 f'{bar.get_height():.3f}', 
+                 ha='center', va='bottom', fontsize=8)
+
+for bar in bars2:
+    axes[1].text(bar.get_x() + bar.get_width()/2, 
+                 bar.get_height() + 0.005,
+                 f'{bar.get_height():.3f}', 
+                 ha='center', va='bottom', fontsize=8)
+
+axes[1].set_title('ROC-AUC vs F1 Score by Model', fontsize=13)
+axes[1].set_ylabel('Score', fontsize=11)
+axes[1].set_xticks(list(x))
+axes[1].set_xticklabels(model_names, rotation=30, 
+                         ha='right', fontsize=9)
+axes[1].legend(fontsize=10)
+axes[1].set_ylim([0, 1.0])
+axes[1].axhline(0.5, color='grey', linestyle='--', 
+                linewidth=1, alpha=0.5)
+axes[1].grid(alpha=0.3, axis='y')
+
+plt.tight_layout()
+plt.show()
+
+
+===== tuning code 3.10 ====
+# ── threshold tuning on Gradient Boosting ─────────────
+from sklearn.metrics import (f1_score, recall_score, 
+                              precision_score, accuracy_score)
+import numpy as np
+
+y_prob_gb = results['Gradient Boosting']['y_prob']
+
+print("=== threshold tuning — Gradient Boosting ===")
+print(f"{'Threshold':>10} {'Accuracy':>10} {'F1':>10} "
+      f"{'Recall':>10} {'Precision':>10}")
+print("─" * 55)
+
+best_f1, best_thresh = 0, 0.5
+
+for thresh in np.arange(0.5, 0.15, -0.05):
+    y_pred_t = (y_prob_gb >= thresh).astype(int)
+    acc  = accuracy_score(y_test, y_pred_t)
+    f1   = f1_score(y_test, y_pred_t)
+    rec  = recall_score(y_test, y_pred_t)
+    prec = precision_score(y_test, y_pred_t)
+    print(f"{thresh:>10.2f} {acc:>10.4f} {f1:>10.4f} "
+          f"{rec:>10.4f} {prec:>10.4f}")
+    if f1 > best_f1:
+        best_f1     = f1
+        best_thresh = round(thresh, 2)
+
+print(f"\nBest threshold by F1 : {best_thresh}")
+print(f"Best F1 score        : {best_f1:.4f}")
+
+# classification report at best threshold
+y_pred_best = (y_prob_gb >= best_thresh).astype(int)
+print(f"\nClassification report at threshold={best_thresh}:")
+print(classification_report(y_test, y_pred_best,
+                             target_names=['TypeA','TypeB']))
+
+
+==== PCA reasoning ====
+PCA was considered as a possible dimensionality reduction method. However, it was not selected for the final model because the dataset did not have extremely high dimensionality after preprocessing, and many of the variables had clear business meaning. Applying PCA would reduce interpretability by replacing original variables with abstract components. Since the objective was not only predictive accuracy but also understanding which customer characteristics contributed to TypeB predictions, the original engineered and encoded feature set was retained.
+
+=== INformation gain and Gini =====
+
+nformation gain was considered as a feature selection concept. However, manual calculation was not required because tree-based models such as Random Forest and Gradient Boosting automatically select useful splits during training using impurity-based criteria. In sklearn, Random Forest uses Gini impurity by default, while entropy can be selected as an alternative criterion. Therefore, feature relevance was assessed through model performance and feature importance rather than manually computing information gain.
+
+
+====== backward forward SFS ==============
+
+"Sequential feature selection with full range exploration (forward k=10, backward k=1) identified age, balance and housing as the most robustly informative numerical features, selected by both search strategies.
+
+When rerun with optimal k values identified from the performance plots (forward k=3, backward k=4), only default appeared in the overlap. This is notable as default scored zero in mutual information analysis (I-Gain=0.000), suggesting it provides combinatorial value within small feature subsets despite carrying no independent predictive signal.
+
+This finding illustrates a key advantage of wrapper methods over filter methods — they can identify features that are useful in combination even when individually uninformative."
+

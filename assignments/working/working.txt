@@ -1,0 +1,2925 @@
+dtype_compare[dtype_compare["train_dtype"] != dtype_compare["query_dtype"]]
+
+
+OR
+|
+
+
+{len(df_ts[(df_ts['age'] < 18) & (df_ts['loan'] == 'yes')])}")
+
+
+secondary	13949	51.1%
+tertiary	7947	29.1%
+primary	4204	 15.4%
+unknown	1172	 4.3%
+
+
+Minimum	-6847
+5-th percentile	-174
+Q1	73
+median	447
+Q3	1423
+95-th percentile	5779.45
+Maximum	98417
+Range	105264
+Interquartile range (IQR)	1350
+Descriptive statistics
+Standard deviation	3015.2071
+Coefficient of variation (CV)	2.2153057
+Kurtosis	126.06267
+Mean	1361.0795
+Median Absolute Deviation (MAD)	447
+Skewness	8.0274267
+Sum	37119359
+Variance	9091474.1
+Monotonicity	Not monotonic
+
+
+df_ts.groupby('y')['balance'].describe()
+
+# group describe by target — useful for any numerical feature
+df_ts.groupby('y')['balance'].describe().round(2)
+
+# or for a quick mean comparison across all numerical features at once
+df_ts.groupby('y')[NUM_COLS].mean().round(2)
+
+
+df_ts.groupby('y')['age'].describe()
+df_ts.groupby('y')['campaign'].describe()
+
+
+Quantile statistics
+Minimum	1
+5-th percentile	1
+Q1	1
+median	2
+Q3	3
+95-th percentile	8
+Maximum	63
+Range	62
+Interquartile range (IQR)	2
+Descriptive statistics
+Standard deviation	3.0110967
+Coefficient of variation (CV)	1.0990916
+Kurtosis	37.305977
+Mean	2.7396231
+Median Absolute Deviation (MAD)	1
+Skewness	4.7311414
+Sum	74715
+Variance	9.0667032
+Monotonicity	Not monotonic
+
+
+# ── age bins and TypeB conversion rate ────────────────
+df_ts['is_typeB'] = (df_ts['y'] == 'TypeB').astype(int)
+
+# define age bins
+age_bins    = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+age_labels  = ['10-20', '20-30', '30-40', '40-50', 
+               '50-60', '60-70', '70-80', '80-90', '90-100']
+
+df_ts['age_bin'] = pd.cut(df_ts['age'], bins=age_bins, labels=age_labels, right=False)
+
+# summary table
+age_summary = df_ts.groupby('age_bin', observed=True).agg(
+    total        = ('is_typeB', 'count'),
+    converted    = ('is_typeB', 'sum'),
+    conversion_rate = ('is_typeB', 'mean')
+).reset_index()
+
+age_summary['not_converted']    = age_summary['total'] - age_summary['converted']
+age_summary['conversion_rate']  = (age_summary['conversion_rate'] * 100).round(2)
+
+print(age_summary[['age_bin','total','converted','not_converted','conversion_rate']]
+      .to_string(index=False))
+
+
+# ── campaign contact count and TypeB conversion ───────
+df_ts['is_typeB'] = (df_ts['y'] == 'TypeB').astype(int)
+
+# define campaign bins
+campaign_bins   = [0, 10, 20, 30, 40, 50, 64]
+campaign_labels = ['1-10', '11-20', '21-30', '31-40', '41-50', '51-63']
+
+df_ts['campaign_bin'] = pd.cut(df_ts['campaign'], 
+                                bins=campaign_bins, 
+                                labels=campaign_labels, 
+                                right=True)
+
+# summary table
+campaign_summary = df_ts.groupby('campaign_bin', observed=True).agg(
+    total           = ('is_typeB', 'count'),
+    converted       = ('is_typeB', 'sum'),
+    conversion_rate = ('is_typeB', 'mean')
+).reset_index()
+
+campaign_summary['not_converted']   = campaign_summary['total'] - campaign_summary['converted']
+campaign_summary['conversion_rate'] = (campaign_summary['conversion_rate'] * 100).round(2)
+
+print(campaign_summary[['campaign_bin','total','converted',
+                         'not_converted','conversion_rate']].to_string(index=False))
+
+# ── visualise ─────────────────────────────────────────
+fig, axes = plt.subplots(1, 2, figsize=(14, 4))
+
+# left — stacked bar of converted vs not
+campaign_summary.plot(kind='bar', x='campaign_bin', 
+                      y=['converted','not_converted'],
+                      stacked=True, ax=axes[0],
+                      color=['#7F77DD','#B4B2A9'], alpha=0.85)
+axes[0].set_title('TypeA vs TypeB by campaign contact count')
+axes[0].set_xlabel('number of contacts')
+axes[0].set_ylabel('count')
+axes[0].tick_params(axis='x', rotation=0)
+axes[0].legend(['TypeB (converted)', 'TypeA (not converted)'])
+
+# right — conversion rate per bin
+axes[1].bar(campaign_summary['campaign_bin'], 
+            campaign_summary['conversion_rate'],
+            color='#F0997B', alpha=0.85)
+axes[1].axhline(df_ts['is_typeB'].mean() * 100, color='red',
+                linestyle='--', linewidth=1.2, 
+                label=f'overall rate {df_ts["is_typeB"].mean()*100:.1f}%')
+axes[1].set_title('TypeB conversion rate by contact count')
+axes[1].set_xlabel('number of contacts')
+axes[1].set_ylabel('conversion rate %')
+axes[1].tick_params(axis='x', rotation=0)
+axes[1].legend()
+
+plt.tight_layout()
+plt.show()
+
+# clean up
+df_ts = df_ts.drop(columns=['campaign_bin'])
+
+==== age =====
+
+Minimum	16
+5-th percentile	25
+Q1	31
+median	37
+Q3	48
+95-th percentile	59
+Maximum	95
+Range	79
+Interquartile range (IQR)	17
+Descriptive statistics
+Standard deviation	11.426248
+Coefficient of variation (CV)	0.28651241
+Kurtosis	-0.059029573
+Mean	39.880463
+Median Absolute Deviation (MAD)	8
+Skewness	0.59585156
+Sum	1087620
+Variance	130.55914
+Monotonicity	Not monotonic
+------
+Distinct	75
+Distinct (%)	0.3%
+Missing	0
+Missing (%)	0.0%
+Infinite	0
+Infinite (%)	0.0%
+Mean	39.880463
+Minimum	16
+Maximum	95
+Zeros	0
+Zeros (%)	0.0%
+Negative	0
+Negative (%)	0.0%
+Memory size	213.2 KiB
+------
+Value	Count	Frequency (%)
+29	1232	 4.5%
+30	1231	 4.5%
+31	1192	 4.4%
+32	1147	 4.2%
+33	1132	 4.2%
+34	1078	 4.0%
+28	1069	 3.9%
+35	1009	 3.7%
+37	909	 3.3%
+36	890	 3.3%
+Other values (65)	16383	60.1%
+--- min 10 values ----
+16	8	 < 0.1%
+17	22	 0.1%
+18	27	 0.1%
+19	42	 0.2%
+20	79	 0.3%
+21	124	 0.5%
+22	181	 0.7%
+23	322	1.2%
+24	484	1.8%
+25	542	
+next steps
+--- max 10 values---
+Value	Count	Frequency (%)
+95	1	 < 0.1%
+93	2	 < 0.1%
+92	2	 < 0.1%
+90	2	 < 0.1%
+89	2	 < 0.1%
+87	2	 < 0.1%
+86	6	< 0.1%
+85	1	 < 0.1%
+84	4	 < 0.1%
+83	11	
+
+
+Number of users who were < 18 - training data -  30
+Number of users who were > 75 - training data 156
+Number of users who were < 18 - query data 17
+Number of users who were > 75 - query data  105
+Number of users who were < 18 who are typeB - 9
+Number of users who were > 75 who are typeB- 72
+
+
+==== job ===== 
+
+Common Values
+Value	Count	Frequency (%)
+JobCat3	5927	21.7%
+JobCat6	5664	20.8%
+JobCat9	4539	16.6%
+JobCat11	3102	11.4%
+JobCat7	2510	9.2%
+JobCat2	1370	 5.0%
+JobCat8	965	 3.5%
+JobCat4	900	 3.3%
+JobCat10	800	 2.9%
+JobCat1	754	 2.8%
+Other values (2)	741
+
+
+JobCat3     5927
+JobCat6     5664
+JobCat9     4539
+JobCat11    3102
+JobCat7     2510
+JobCat2     1370
+JobCat8      965
+JobCat4      900
+JobCat10     800
+JobCat1      754
+JobCat5      563
+unknown      178
+Name: count, dtype: int64
+
+
+=== marital ====
+
+
+married	16462	60.4%
+single	7728	28.3%
+divorced	3082	 11.3%
+
+
+=== education ====
+Common Values
+Value	Count	Frequency (%)
+secondary	13949	51.1%
+tertiary	7947	29.1%
+primary	4204	 15.4%
+unknown	1172	 4.3%
+
+===== default ===
+Value	Count	Frequency (%)
+False	26788	98.2%
+True	484	 1.8%
+
+=== balance ====
+Quantile statistics
+Minimum	-6847
+5-th percentile	-174
+Q1	73
+median	447
+Q3	1423
+95-th percentile	5779.45
+Maximum	98417
+Range	105264
+Interquartile range (IQR)	1350
+Descriptive statistics
+Standard deviation	3015.2071
+Coefficient of variation (CV)	2.2153057
+Kurtosis	126.06267
+Mean	1361.0795
+Median Absolute Deviation (MAD)	447
+Skewness	8.0274267
+Sum	37119359
+Variance	9091474.1
+Monotonicity	Not monotonic
+
+----
+Distinct	5939
+Distinct (%)	21.8%
+Missing	0
+Missing (%)	0.0%
+Infinite	0
+Infinite (%)	0.0%
+Mean	1361.0795
+Minimum	-6847
+Maximum	98417
+Zeros	2115
+Zeros (%)	7.8%
+Negative	2297
+Negative (%)	8.4%
+Memory size	213.2 KiB
+
+--- min 10 values----
+Value	Count	Frequency (%)
+-6847	1	< 0.1%
+-3313	1	< 0.1%
+-3058	1	< 0.1%
+-2827	1	< 0.1%
+-2712	1	< 0.1%
+-2604	1	< 0.1%
+-2282	1	< 0.1%
+-2122	1	< 0.1%
+-2093	1	< 0.1%
+-2049	1	< 0.1%
+
+---  max 10 values ----
+
+Value	Count	Frequency (%)
+98417	1	< 0.1%
+71188	1	< 0.1%
+66721	1	< 0.1%
+66653	1	< 0.1%
+59649	1	< 0.1%
+58932	1	< 0.1%
+58544	1	< 0.1%
+56831	1	< 0.1%
+52587	2	< 0.1%
+52499	1	
+
+---
+balance_bin  total  bucket_pct_of_all  typeA_count  typeB_count  typeB_pct_of_bucket
+         <0   4412              16.18         4109          303                 6.87
+      0-10k  22367               82.01        19512         2855                12.76
+    10k-20k    386               1.42          320           66                17.10
+    20k-30k     74               0.27           61           13                17.57
+    30k-40k     15               0.06           12            3                20.00
+    40k-50k      6               0.02            6            0                 0.00
+    50k-60k      8               0.03            6            2                25.00
+       60k+      4               0.01            4            0                 0.00
+
+
+
+==== housing ====
+
+Common Values (Table)
+Common Values (Plot)
+Value	Count	Frequency (%)
+True	15131	55.5%
+False	12141	44.5
+
+
+
+==== contact =====
+
+
+Value	Count	Frequency (%)
+cellular	17633	64.7%
+unknown	7897	29.0%
+telephone	1742	 6.4%
+
+
+=== day =====
+
+Real number (ℝ)
+Distinct	31
+Distinct (%)	0.1%
+Missing	0
+Missing (%)	0.0%
+Infinite	0
+Infinite (%)	0.0%
+Mean	15.769287
+Minimum	1
+Maximum	31
+Zeros	0
+Zeros (%)	0.0%
+Negative	0
+Negative (%)	0.0%
+Memory size	213.2 KiB
+
+Quantile statistics
+Minimum	1
+5-th percentile	3
+Q1	8
+median	16
+Q3	21
+95-th percentile	29
+Maximum	31
+Range	30
+Interquartile range (IQR)	13
+Descriptive statistics
+Standard deviation	8.3009833
+Coefficient of variation (CV)	0.52640194
+Kurtosis	-1.0477971
+Mean	15.769287
+Median Absolute Deviation (MAD)	7
+Skewness	0.096233446
+Sum	430060
+Variance	68.906324
+Monotonicity	Not monotonic
+
+
+==== month ==== 
+
+Value	Count	Frequency (%)
+may	8249	30.2%
+jul	4117	15.1%
+aug	3739	13.7%
+jun	3283	 12.0%
+nov	2384	 8.7%
+apr	1795	 6.6%
+feb	1610	 5.9%
+jan	841	 3.1%
+oct	451	 1.7%
+sep	371	 1.4%
+Other values (2)	432	 1.
+
+
+==== duration ==== 
+
+Distinct	1
+Distinct (%)	< 0.1%
+Missing	0
+Missing (%)	0.0%
+Memory size	213.2 KiB
+
+
+
+Value	Count	Frequency (%)
+0	27272	
+
+
+=== campaign ====
+
+Distinct	41
+Distinct (%)	0.2%
+Missing	0
+Missing (%)	0.0%
+Infinite	0
+Infinite (%)	0.0%
+Mean	2.7396231
+Minimum	1
+Maximum	63
+Zeros	0
+Zeros (%)	0.0%
+Negative	0
+Negative (%)	0.0%
+Memory size	213.2 KiB
+
+
+Quantile statistics
+Minimum	1
+5-th percentile	1
+Q1	1
+median	2
+Q3	3
+95-th percentile	8
+Maximum	63
+Range	62
+Interquartile range (IQR)	2
+Descriptive statistics
+Standard deviation	3.0110967
+Coefficient of variation (CV)	1.0990916
+Kurtosis	37.305977
+Mean	2.7396231
+Median Absolute Deviation (MAD)	1
+Skewness	4.7311414
+Sum	74715
+Variance	9.0667032
+Monotonicity	Not monoton
+
+--- min 10 values ---
+Value	Count	Frequency (%)
+1	10641	39.0%
+2	7531	27.6%
+3	3297	 12.1%
+4	2145	 7.9%
+5	1094	 4.0%
+6	764	 2.8%
+7	422	 1.5%
+8	311	 1.1%
+9	201	 0.7%
+10	166	 0.6%
+
+--- max 10 values ----
+
+Value	Count	Frequency (%)
+63	1	 < 0.1%
+58	1	 < 0.1%
+43	1	 < 0.1%
+41	2	 < 0.1%
+38	2	 < 0.1%
+36	1	 < 0.1%
+35	2	 < 0.1%
+34	4	< 0.1%
+33	2	 < 0.1%
+32	5	< 0.1%
+
+----------
+campaign_bin  total  converted  not_converted  conversion_rate
+           1  10641       1569           9072            14.74
+         2-5  14067       1526          12541            10.85
+        6-10   1864        117           1747             6.28
+       11-20    565         27            538             4.78
+       21-30    107          2            105             1.87
+       31-40     23          1             22             4.35
+       41-50      3          0              3             0.00
+       51-63      2          0              2             0.00
+
+
+
+===== pdays ====
+
+Distinct	499
+Distinct (%)	1.8%
+Missing	0
+Missing (%)	0.0%
+Infinite	0
+Infinite (%)	0.0%
+Mean	40.074105
+Minimum	-1
+Maximum	871
+Zeros	0
+Zeros (%)	0.0%
+Negative	22313
+Negative (%)	81.8%
+Memory size	213.2 KiB
+
+Quantile statistics
+Minimum	-1
+5-th percentile	-1
+Q1	-1
+median	-1
+Q3	-1
+95-th percentile	317
+Maximum	871
+Range	872
+Interquartile range (IQR)	0
+Descriptive statistics
+Standard deviation	100.20098
+Coefficient of variation (CV)	2.5003923
+Kurtosis	6.9586924
+Mean	40.074105
+Median Absolute Deviation (MAD)	0
+Skewness	2.626159
+Sum	1092901
+Variance	10040.237
+Monotonicity	Not monotonic
+-1	22313	81.8%
+182	99	 0.4%
+92	87	 0.3%
+91	83	 0.3%
+183	81	 0.3%
+181	66	 0.2%
+370	60	 0.2%
+184	56	 0.2%
+364	56	 0.2%
+94	48	 0.2%
+Other values (489)	4323	 15.9%
+
+--- min 10 values ---
+Value	Count	Frequency (%)
+-1	22313	81.8%
+1	10	 < 0.1%
+2	21	 0.1%
+4	1	 < 0.1%
+5	6	 < 0.1%
+6	7	 < 0.1%
+7	4	 < 0.1%
+8	15	 0.1%
+9	7	 < 0.1%
+10	6	 < 0.1%
+
+--- max 10 values ---
+
+Value	Count	Frequency (%)
+871	1	< 0.1%
+850	1	< 0.1%
+828	1	< 0.1%
+826	1	< 0.1%
+808	1	< 0.1%
+804	1	< 0.1%
+792	2	< 0.1%
+784	1	< 0.1%
+779	2	< 0.1%
+776	1	
+
+==== job ===== 
+
+Common Values
+Value	Count	Frequency (%)
+JobCat3	5927	21.7%
+JobCat6	5664	20.8%
+JobCat9	4539	16.6%
+JobCat11	3102	11.4%
+JobCat7	2510	9.2%
+JobCat2	1370	 5.0%
+JobCat8	965	 3.5%
+JobCat4	900	 3.3%
+JobCat10	800	 2.9%
+JobCat1	754	 2.8%
+Other values (2)	741	 2.7%
+
+
+
+
+====== previous===
+ZEROS 
+
+Distinct	35
+Distinct (%)	0.1%
+Missing	0
+Missing (%)	0.0%
+Infinite	0
+Infinite (%)	0.0%
+Mean	0.5788721
+Minimum	0
+Maximum	58
+Zeros	22313
+Zeros (%)	81.8%
+Negative	0
+Negative (%)	0.0%
+Memory size	213.2 KiB
+--
+Quantile statistics
+Minimum	0
+5-th percentile	0
+Q1	0
+median	0
+Q3	0
+95-th percentile	3
+Maximum	58
+Range	58
+Interquartile range (IQR)	0
+Descriptive statistics
+Standard deviation	1.9428823
+Coefficient of variation (CV)	3.356324
+Kurtosis	124.52773
+Mean	0.5788721
+Median Absolute Deviation (MAD)	0
+Skewness	8.1446268
+Sum	15787
+Variance	3.7747918
+Monotonicity	Not monotonic
+0	22313	81.8%
+1	1680	 6.2%
+2	1234	 4.5%
+3	697	 2.6%
+4	417	 1.5%
+5	257	 0.9%
+6	175	 0.6%
+7	123	 0.5%
+8	78	 0.3%
+9	61	 0.2%
+
+capmaign >> leave as is > log conversion (values of 1 to 63, no negative and no zeros) -- will use robustscalar
+pdays >> cteated new features "contacted_previosuly" binary 1 and 0, '1 becomes '0', retain other numbers > so end up with 2 features >> new feature will have values from 0 to 871, large spread... use robust scalar?
+previous >>  values between 0 and 58.. skewed with outliers... no negative values... >> use robust scalar
+
+
+===poutcome===
+Value	Count	Frequency (%)
+unknown	22316	81.8%
+failure	2998	 11.0%
+other	1052	 3.9%
+success	906	 3.3%
+
+unknown	22316	81.8%
+failure	2998	 11.0%
+other	1052	 3.9%
+success	906	 3.3%
+
+
+poutcome  total  pct_of_total  typeA_count  typeA_pct  typeB_count  typeB_pct
+ success    906          3.32          301      33.22          605      66.78
+   other   1052          3.86          871      82.79          181      17.21
+ failure   2998         10.99         2621      87.42          377      12.58
+ unknown  22316         81.83        20237      90.68         2079       9.32
+
+--- y ----
+y
+Categorical
+TypeA	24030 
+TypeB	3242 
+Distinct	2
+Distinct (%)	< 0.1%
+Missing	0
+Missing (%)	0.0%
+Memory size	213.2 KiB
+
+
+Value	Count	Frequency (%)
+TypeA	24030	88.1%
+TypeB	3242	 11.9%
+
+
+
+===================
+
+models = {
+    'Logistic Regression' : LogisticRegression(class_weight='balanced', 
+                                                max_iter=500),
+    'Random Forest'       : RandomForestClassifier(n_estimators=200,
+                                                    class_weight='balanced',
+                                                    random_state=42),
+    'Gradient Boosting'   : GradientBoostingClassifier(n_estimators=200,
+                                                        random_state=42),
+    'KNN'                 : KNeighborsClassifier(n_neighbors=5),
+    'Naive Bayes'         : GaussianNB() >> gven am doing ths for a few features         - Next Steps
+            - change 'yes' value to '1' and 'no' to '0'
+            - convert to dtypes = int64 (although numeric is effectively binary categorical) >>> i.e. housing , default and maybe sme more do any models have problems with it as int64 or do they need categorical?
+
+
+
+Logistic Regression'
+Random Forest'
+Gradient Boosting
+'KNN'  
+'Naive Bayes > GaussianNB
+
+
+print(f"total values              : {len(df_ts_3['contacted_previously']):,}")
+print(f"contacted previously  (1) : {(df_ts_3['contacted_previously'] == 1).sum():,}")
+print(f"not contacted before  (0) : {(df_ts_3['contacted_previously'] == 0).sum():,}")
+print(f"dtype                     : {df_ts_3['contacted_previously'].dtype}")
+
+
+
+
+==== Lab 1 soln PreProcessing ====
+
+## Lab Exercise Week #1: Mastering Data Preprocessing in Machine Learning
+
+### Objective:
+The goal of this lab exercise is to delve into advanced data preprocessing techniques used in machine learning. Preprocessing is an important step in Machine Learning, otherwise you end-up with "garbage-in garbage-out" paradigm, meaning you feed the machine learning algorithm with bad data, you can expect bad performance. You will work with real-world datasets, handling missing data, encoding categorical variables, scaling features, and more.
+
+### Dataset:
+For this exercise, we will use the "<a href="https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data">Adult Income</a>" dataset from the UCI Machine Learning Repository. This dataset contains various features related to individuals and aims to predict whether a person earns more than $50,000 per year.
+
+### Tasks:
+
+#### 1). Data Loading and Initial Exploration:
+<ul>
+    <li>Load the "Adult Income" dataset. Loading can be done by accessing it locally, after you have download it, or direct access via URL provided above.</li>
+    <li>Explore the dataset to understand its structure and features. Check the feature structure from the <a href="https://archive.ics.uci.edu/dataset/2/adult">UCI Repository</a>.</li>
+    <li>Identify the target variable and its distribution.</li>
+</ul>
+
+
+
+# Import necessary libraries
+import numpy as np
+import pandas as pd
+# neede for handlig of numericla data
+from imblearn.over_sampling import RandomOverSampler
+# to handle imbalanced data > 
+from sklearn.model_selection import train_test_split
+# used to split data into traingin and testing
+from sklearn.impute import SimpleImputer
+# used to address missnig values
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+# MinMax , RobustScalar  also - depends on yoour data, whichever suits your data best to get best result..
+# to get between zero and 1 as mean of zero and a std dev of 1
+from sklearn.compose import ColumnTransformer
+# used to apply transformation for selected columns
+from sklearn.pipeline import Pipeline
+# used to create structured workflow for classification model
+from sklearn.ensemble import RandomForestClassifier
+# used in this lab
+from sklearn.metrics import accuracy_score, classification_report
+# accuracy and classifiticion report, f1, recall, suuport all included in classificiotn report
+
+# Task 1: Data Loading and Initial Exploration
+url = "https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data"
+column_names = ['age', 'workclass', 'fnlwgt', 'education', 'education-num', 'marital-status', 'occupation', 'relationship',
+                'race', 'sex', 'capital-gain', 'capital-loss', 'hours-per-week', 'native-country', 'income']
+
+data = pd.read_csv(url, names=column_names, sep=',\s', na_values=["?"])
+
+# Explore the dataset
+print("Dataset Info:\n", data.info())
+print("\nTarget Variable Distribution:\n", data['income'].value_counts())
+
+>>>
+
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 32561 entries, 0 to 32560
+Data columns (total 15 columns):
+ #   Column          Non-Null Count  Dtype 
+---  ------          --------------  ----- 
+ 0   age             32561 non-null  int64 
+ 1   workclass       30725 non-null  object
+ 2   fnlwgt          32561 non-null  int64 
+ 3   education       32561 non-null  object
+ 4   education-num   32561 non-null  int64 
+ 5   marital-status  32561 non-null  object
+ 6   occupation      30718 non-null  object
+ 7   relationship    32561 non-null  object
+ 8   race            32561 non-null  object
+ 9   sex             32561 non-null  object
+ 10  capital-gain    32561 non-null  int64 
+ 11  capital-loss    32561 non-null  int64 
+ 12  hours-per-week  32561 non-null  int64 
+ 13  native-country  31978 non-null  object
+ 14  income          32561 non-null  object
+dtypes: int64(6), object(9)
+memory usage: 3.7+ MB
+Dataset Info:
+ None
+
+Target Variable Distribution:
+ income
+<=50K    24720
+>50K      7841
+Name: count, dtype: int64
+
+
+data
+#### 2). Handling Missing Data:
+<ul>
+    <li>Identify missing values in the dataset.</li>
+    <li>Implement a strategy to handle missing data (e.g., imputation or removal). Impute missing values with the median for numerical columns and the most frequent value for categorical columns.</li>
+    <li>Justify the chosen strategy.</li>
+</ul>
+# Task 2: Handling Missing Data
+# Impute missing values with the median for numerical columns and the most frequent value for categorical columns
+numerical_features = data.select_dtypes(include=['int64', 'float64']).columns
+categorical_features = data.select_dtypes(include=['object']).columns
+categorical_features = categorical_features[~categorical_features.isin(['income'])] # exclude the income column as it will be the output column
+numerical_transformer = SimpleImputer(strategy='median')
+categorical_transformer = SimpleImputer(strategy='most_frequent')
+
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('num', numerical_transformer, numerical_features),
+        ('cat', categorical_transformer, categorical_features)
+    ])
+numerical_features
+
+>>>
+Index(['age', 'fnlwgt', 'education-num', 'capital-gain', 'capital-loss',
+       'hours-per-week'],
+      dtype='object')
+
+categorical_features
+>>>
+Index(['workclass', 'education', 'marital-status', 'occupation',
+       'relationship', 'race', 'sex', 'native-country'],
+      dtype='object')
+
+#### 3). Encoding Categorical Variables:
+<ul>
+    <li>Identify categorical variables in the dataset.</li>
+    <li>Apply appropriate encoding techniques (e.g., one-hot encoding or label encoding). Use one-hot encoding for categorical variables.</li>
+    <li>Discuss the impact of encoding choices on model performance.</li>
+</ul>
+# Task 3: Encoding Categorical Variables
+# Use one-hot encoding for categorical variables
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('num', numerical_transformer, numerical_features),
+        ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features)
+    ])
+#### 4). Feature Scaling:
+<ul>
+    <li>Identify features that require scaling.</li>
+    <li>Apply feature scaling using techniques such as Min-Max scaling or Standardization.</li>
+    <li>Discuss the importance of feature scaling in different machine learning algorithms.</li>
+</ul>
+# Task 4: Feature Scaling
+# Apply Standardization to numerical features
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('num', StandardScaler(), numerical_features),
+        ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features)
+    ])
+#### 5). Feature Engineering:
+<ul>
+    <li>Create new meaningful features based on existing ones.</li>
+    <li>Discuss how feature engineering can enhance model performance.</li>
+</ul>
+# Task 5: Feature Engineering
+# Create a new feature "capital-diff" as the difference between capital-gain and capital-loss
+data['capital-diff'] = data['capital-gain'] - data['capital-loss']
+#### 6). Outlier Detection and Handling:
+<ul>
+    <li>Identify potential outliers in numerical features.</li>
+    <li>Implement a strategy to handle outliers (e.g., removal or transformation).</li>
+    <li>Discuss the impact of outliers on model training.</li>
+</ul>
+# Task 6: Outlier Detection and Handling
+# Identify and handle outliers using a suitable method (e.g., Z-score or IQR)
+#### 7). Normalization and Transformation:
+<ul>
+    <li>Apply normalization to achieve a normal distribution in numerical features.</li>
+    <li>Discuss the benefits of normalization in specific machine learning algorithms.</li>
+</ul>
+# Task 7: Normalization and Transformation (You can use standard scalar, minmax scalar or robust scalar)
+# Apply normalization to achieve a normal distribution in numerical features
+
+#### 8). Data Splitting:
+<ul>
+    <li>Split the dataset into training and testing sets.</li>
+    <li>Justify the chosen ratio and the importance of a proper train-test split.</li>
+</ul>
+# Task 8: Data Splitting
+X = data.drop('income',axis=1)
+y = data['income']
+print("input columns", X.columns)
+print("output columns", y.name)
+
+# split data as 80% for training and 20% for testing
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+print("shapes of training and testing")
+print('X_train shape:', X_train.shape)
+print('y_train shape:', y_train.shape)
+print('X_test shape:', X_test.shape)
+print('y_test shape:', y_test.shape)
+
+>>>>
+
+input columns Index(['age', 'workclass', 'fnlwgt', 'education', 'education-num',
+       'marital-status', 'occupation', 'relationship', 'race', 'sex',
+       'capital-gain', 'capital-loss', 'hours-per-week', 'native-country',
+       'capital-diff'],
+      dtype='object')
+output columns income
+shapes of training and testing
+X_train shape: (26048, 15)
+y_train shape: (26048,)
+X_test shape: (6513, 15)
+y_test shape: (6513,)
+
+X_train.columns
+
+
+>>>
+
+Index(['age', 'workclass', 'fnlwgt', 'education', 'education-num',
+       'marital-status', 'occupation', 'relationship', 'race', 'sex',
+       'capital-gain', 'capital-loss', 'hours-per-week', 'native-country',
+       'capital-diff'],
+      dtype='object')
+y
+
+
+
+#### 9). Handling Imbalanced Data:
+<ul>
+    <li>Identify if the target variable has an imbalanced distribution.</li>
+    <li>Implement techniques to handle imbalanced data (e.g., oversampling or undersampling).</li>
+    <li>Discuss the challenges posed by imbalanced datasets.</li>
+</ul>
+#Identify if the target variable has an imbalanced distribution.
+print("Class distribution before oversampling:")
+print( y_train.value_counts())
+oversampler = RandomOverSampler(random_state=42)
+# Apply the oversampling technique to the training set
+X_train_resampled, y_train_resampled = oversampler.fit_resample(X_train, y_train)
+print("Class distribution after oversampling:")
+print( y_train_resampled.value_counts())
+
+>>>>
+Class distribution before oversampling:
+income
+<=50K    19778
+>50K      6270
+Name: count, dtype: int64
+
+
+#### 10). Pipeline Implementation:
+<ul>
+    <li>Construct a preprocessing pipeline that includes all the steps above.</li>
+    <li>Discuss the advantages of using a pipeline in the context of reproducibility and efficiency.</li>
+</ul>
+# Task 10: Pipeline Implementation
+# thsi means al traingin data will go through pre-processig steps first then through the classifier
+# 1st  = pre-processing
+# 2nd = classifiing
+# Construct a preprocessing pipeline with a classifier
+pipeline = Pipeline(steps=[
+    ('preprocessor', preprocessor),
+    ('classifier', RandomForestClassifier(random_state=42))
+])
+
+# Fit the pipeline on training data
+pipeline.fit(X_train_resampled, y_train_resampled)
+
+# Make predictions on test data
+# variable for predicted values
+y_pred = pipeline.predict(X_test)
+
+# Evaluate the model
+# y_test is actual values of testing data for the y column which is income column_names
+# y_pred = predicted accuracy of the model
+# just print y_test and y_pred to get accuracy
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("Classification Report:\n", classification_report(y_test, y_pred))
+
+Accuracy: 0.8558268079226163
+Classification Report:
+               precision    recall  f1-score   support
+
+       <=50K       0.91      0.90      0.90      4942
+        >50K       0.70      0.71      0.70      1571
+
+    accuracy                           0.86      6513
+   macro avg       0.80      0.81      0.80      6513
+weighted avg       0.86      0.86      0.86      6513
+
+
+
+===== Lab 2 Soln KNN ======
+
+## Lab Exercise Week \#2: k-Nearest Neighbors (kNN) in Machine Learning
+
+### Objective:
+The goal of this lab exercise is to understand the k-Nearest Neighbors (kNN) algorithm and its application in machine learning. You will implement kNN on a dataset, tune hyperparameters, and evaluate model performance.
+
+### Dataset:
+For this lab exercise, you'll use the famous Iris dataset (importable throigh sklearn library in python), which contains measurements of various features of iris flowers.
+
+### Tasks:
+
+#### 1). Data Loading and Exploration:
+<ul>
+<li>Load the Iris dataset.</li>
+<li>Explore the dataset to understand its structure and features.</li>
+<li>Visualize the data using scatter plots or any other suitable visualization method.</li>
+</ul>
+# Import necessary libraries
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score, classification_report
+from sklearn.neighbors import KNeighborsClassifier
+
+# Task 1: Data Loading and Exploration
+iris = load_iris()
+data = pd.DataFrame(data= np.c_[iris['data'], iris['target']], columns= iris['feature_names'] + ['target'])
+#### 2). Data Preprocessing:
+
+<ul>
+<li>Split the dataset into training and testing sets.</li>
+<li>Normalize the features if necessary.</li>
+<li>Print the shapes of train and target variables.</li>
+</ul>
+# Task 2: Data Preprocessing
+X = data.iloc[:, :-1].values
+y = data.iloc[:, -1].values
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
+
+
+>>>
+(120, 4) (30, 4) (120,) (30,)
+
+### 3). Implement k-Nearest Neighbors:
+<ul>
+<li>Write a Python function to implement the kNN algorithm.</li>
+<li>Allow users to specify the value of 'k' as a parameter.</li>
+<li>Use Euclidean distance as the distance metric.</li>
+</ul>
+# Task 3: Implement k-Nearest Neighbors
+def knn_predict(X_train, y_train, X_test, k):
+    predictions = []
+    for test_instance in X_test:
+        distances = np.linalg.norm(X_train - test_instance, axis=1)
+        nearest_neighbors = np.argsort(distances)[:k]
+        neighbor_labels = y_train[nearest_neighbors]
+        unique_labels, counts = np.unique(neighbor_labels, return_counts=True)
+        predicted_label = unique_labels[np.argmax(counts)]
+        predictions.append(predicted_label)
+    return np.array(predictions)
+#### 4). Model Training:
+<ul>
+    <li>Train the kNN model on the training set by calling the defined function above.</li>
+</ul>
+# Task 4: Model Training
+k_value = 7
+y_pred = knn_predict(X_train, y_train, X_test, k_value)
+#### 5). Hyperparameter Tuning:
+
+<ul>
+    <li>Experiment with different values of 'k' (e.g., k=3, 5, 7) and observe how it affects the model's performance.</li>
+    <li>Plot a graph showing the accuracy for different values of 'k' and choose the optimal 'k' for the model.</li>
+</ul>
+# Task 5: Hyperparameter Tuning
+k_values = [3, 5, 7, 9]
+accuracy_values = []
+
+for k in k_values:
+    y_pred = knn_predict(X_train, y_train, X_test, k)
+    accuracy = accuracy_score(y_test, y_pred)
+    accuracy_values.append(accuracy)
+
+# Plotting accuracy vs. k
+plt.plot(k_values, accuracy_values, marker='o')
+plt.title('Accuracy vs. k for kNN')
+plt.xlabel('k')
+plt.ylabel('Accuracy')
+plt.show()
+#### 6). Model Evaluation:
+
+<ul>
+    <li>Use the trained model to make predictions on the testing set.</li>
+    <li>Evaluate the model's performance using metrics such as accuracy, precision, recall, and F1-score.</li>
+</ul>
+# Task 6: Model Evaluation
+print("Classification Report:\n", classification_report(y_test, y_pred))
+
+>>>
+
+Classification Report:
+               precision    recall  f1-score   support
+
+         0.0       1.00      1.00      1.00        10
+         1.0       1.00      1.00      1.00         9
+         2.0       1.00      1.00      1.00        11
+
+    accuracy                           1.00        30
+   macro avg       1.00      1.00      1.00        30
+weighted avg       1.00      1.00      1.00        30
+
+
+#### 7). Visualization:
+
+<ul>
+    <li>Visualize the decision boundaries of the kNN classifier on a 2D plot. You can choose two features for this purpose.</li>
+</ul>
+
+# Task 7: Visualization
+# Choose two features for visualization
+feature1_index = 0
+feature2_index = 1
+
+plt.scatter(X_test[:, feature1_index], X_test[:, feature2_index], c=y_test, cmap='viridis', label='Actual')
+plt.scatter(X_test[:, feature1_index], X_test[:, feature2_index], c=y_pred, cmap='viridis', marker='x', label='Predicted')
+plt.xlabel(iris.feature_names[feature1_index])
+plt.ylabel(iris.feature_names[feature2_index])
+plt.legend()
+plt.title('Actual vs. Predicted Labels with kNN')
+plt.show()
+
+>>>>
+
+
+#### 8). Discussion:
+<ul>
+    <li>Reflect on the impact of the choice of 'k' on the model's performance.</li>
+    <li>Discuss situations where kNN might be a suitable or unsuitable algorithm.</li>
+</ul>
+# Task 8: Discussion
+print("Discussion:")
+print("1. The choice of 'k' significantly affects the model's performance. It's crucial to tune 'k' based on the dataset.")
+print("2. Smaller 'k' values may lead to overfitting, while larger 'k' values may result in underfitting.")
+print("3. kNN is suitable for datasets with clear decision boundaries and may not perform well on high-dimensional data.")
+
+
+=== Lab 3 soln DTs =====
+
+
+
+
+## Lab Exercise Week \#3: Decision Trees in Machine Learning
+
+### Objective:
+The goal of this lab exercise is to understand Decision Trees and their application in machine learning. You will apply a decition tree classifier to different datasets and plot the resulting trees.
+
+### Datasets:
+For this lab exercise, you'll use the ApplePears, AthleteSelection, Restaurant and Penguins datasets from Brightspace.
+
+### Tasks:
+
+#### 1). Data Loading and Exploration:
+<ul>
+<li>Import all needed libraries.</li>
+<li>Load the ApplePears dataset.</li>
+<li>Explore the dataset to understand its structure and features.</li>
+<li>Select approprate features for a decision tree.</li>
+</ul>
+import pandas as pd # data manipulation , modifyign and explorign dataset
+import numpy as np # suport array absed operations
+from sklearn import tree # iprot a tree from sklearn - buuilt in class for DT
+from sklearn.tree import DecisionTreeClassifier
+import matplotlib.pyplot as plt # visualistui of DT
+from sklearn.preprocessing import OneHotEncoder # convery categorical data into numeric
+apears = pd.read_csv('ApplesPears.csv') # just path or name of file / for jupyter need path to file
+apears.head() # retrieve first 5 rows in the daatset by default head(10) to ge 10 rows...
+
+# df can't deal with categorical features so drop categorical feature taste,,,
+# keep other 5 numerical eatures
+# 1st thing is to define input and put of model
+scikit-learn can deal with a category class label but it cannot deal with categorical features.
+So we drop the Taste feature.
+
+See later in the notebook for how to deal with categorical features
+# 1st thing is to define input and put features of model# defnie the clas
+y = apears.pop('Class').values
+apears.pop('Taste')    # Can't deal with category features - remove taste column 
+ap_features = apears.columns # save them into a variable called ap_features
+# defien x features of 5 columns....
+# converth them into an array using .values
+X = apears.values
+X[0] # will retrieve the first valeu of the array, the features only
+
+>>>>
+array([210.  ,  60.  ,  62.  , 186.  ,   0.97])
+
+ap_features
+Index(['Greeness', 'Height', 'Width', 'Weight', 'H/W'], dtype='object')
+
+
+
+>>>
+
+# al the labels we have int he dataset
+y
+
+>>>
+array(['Apple', 'Pear', 'Apple', 'Pear', 'Pear', 'Apple', 'Pear', 'Apple',
+       'Apple', 'Apple'], dtype=object)
+
+
+apears # the df - taste has been removed, didn't use head so get all rows... that we have inside dataset
+X # see aray of X - has all values of feature in our dataset
+
+>>>
+array([[210.  ,  60.  ,  62.  , 186.  ,   0.97],
+       [220.  ,  70.  ,  53.  , 180.  ,   1.32],
+       [215.  ,  55.  ,  50.  , 152.  ,   1.1 ],
+       [180.  ,  76.  ,  40.  , 152.  ,   1.9 ],
+       [220.  ,  68.  ,  45.  , 153.  ,   1.51],
+       [160.  ,  65.  ,  68.  , 221.  ,   0.96],
+       [215.  ,  63.  ,  45.  , 140.  ,   1.4 ],
+       [180.  ,  55.  ,  56.  , 154.  ,   0.98],
+       [220.  ,  68.  ,  65.  , 221.  ,   1.05],
+       [190.  ,  60.  ,  58.  , 174.  ,   1.03]])
+
+#### 2) Decision Tree for Apples and Pears:
+<ul>
+<li>Create a decision tree classifier.</li>
+<li>Train your model.</li>
+<li>Predict the outcome.</li>
+<li>Plot the decision tree model.</li>
+</ul>
+Two key methods:
+1. `fit` method will train the tree from the data.
+2. `predict` method will produce class predictions for an array of test data. 
+# 1st step create an instance of DT classifier... criterion = entropy means we will sue Information Gain (IG)
+dtree = DecisionTreeClassifier(criterion='entropy')
+# tree it using feature and target... fit mean to train! taring usin features and target
+ap_tree = dtree.fit(apears, y)
+# to make sure classifier is trained well we need ot test this classifier with any one of the sample uside of the daatset
+# name of tree and .predicyt
+# means we will preidict output of sample number 3 in the dataset
+ap_tree.predict([X[2]])
+# predicts apple correctly
+DT classifiers corrcetly based no valuswe have...
+
+>>>
+
+c:\Users\eamon\anaconda3\envs\assignment-a\Lib\site-packages\sklearn\utils\validation.py:2749: UserWarning: X does not have valid feature names, but DecisionTreeClassifier was fitted with feature names
+  warnings.warn(
+array(['Apple'], dtype=object)
+
+
+# next step is to plot this tree
+# use mathplotlib + pass nane of tree we have + features name
+# font size...class names... fileed = rtue means shapes inside means they will eb filled wiht colours
+# shape rounded
+tree.plot_tree(ap_tree, feature_names=ap_features, fontsize = 12,
+                      class_names=['Apple','Pear'],  
+                      filled=True, rounded=True) 
+None # supressing the verbose return from plot_tree
+
+# image below represents DT tp clasify apples and pears based on ratino betwene heads and widths
+# root node - entropy 0.97 measure impurity >> if closer to one >> less order than clsoer to zero
+# sample 1 to 10 > have 10 data points/samples inside the data
+# valeus 6 and 4 >>> 6 apples and 4 pears... class is apple as we have a majority apple...
+# cassify data bases on height and width
+# # Lft = true branch >> entropy = 0 so all belogn to same clas and no chaos
+# 6 aples  / 0 pears + no miss classifictio in this branch
+# RHS false branch - entropu = 0 >> ni impurity / 4 pears  /0 apples / class pears 
+# entropy goes to zero after 1st step >>> no more branches after 1st level split 
+
+
+
+
+#### 3) Decision Tree for Athletes:
+
+
+<ul>
+<li>Load the AthleteSelection.csv dataset</li>
+<li>Create a decision tree classifier.</li>
+<li>Train your model.</li>
+<li>Predict the outcome.</li>
+<li>Plot the decision tree model.</li>
+</ul>
+# same again but different dataset...
+athlete = pd.read_csv('AthleteSelection.csv',index_col = 'Athlete')
+athlete.head()
+
+# have 2 features super
+# target is selected column
+# 1st thing define x and y
+# give function name 
+# have 2 features + 1 target 
+# y is coluimn which is selected and /pop function and name of column
+# values means converted into arrary
+# thsi one has the labels
+y = athlete.pop('Selected').values
+# this has numerical features
+X = athlete.values
+# 2nd step build our DT using DT classifier
+# criteris is the gini >> different to entropy in example 1
+# train using x and y and fit
+
+atree = DecisionTreeClassifier(criterion='gini')
+atree = atree.fit(X,y)
+# 3rd plot
+# first plot the tree using plot tr function
+# and the anme speed and agility...
+
+fig, ax = plt.subplots(figsize=(6, 6))
+tree.plot_tree(atree, feature_names=['Speed','Agility'],  
+                      class_names=['Selected','No'],  
+                      filled=True, rounded=True,)
+None # supressing the verbose return from plot_tree
+Run a test example, select one of the training examples
+# top node  = root node -- has speed features < = 5
+# gini impurity  -= 0.48
+# if gini near zero is better than if gini near 1
+# 12 samples is selected and 8 
+# Left side = True
+# speed become .57 gini 0.15 >> gini decresee >> 11 and 1 = 11 samples classified as selected and just 1 classified as no # mostly seletced class >>> thats why its a selected class
+# LEFT >> gini = 0 >> veyr pure node all samples are selected >> 9 classified as selected and zero classified as no
+# from RHS > agility is 2nd feature... speed was 1st feature
+# gini is 0.44 , number of samples = 3 and clasfiy as ssleted and 1 lassified as not ssleected...
+# LHS again >> gini = 0 , gini = pure....
+# nuber of samples = 1 and 1 not seletced... no impurity... classifies two classes pergfectly...
+# LHS agility < 0.287 >> class selected if nto achieveing these conditions so not seletced...
+# class  = no whic means it is nto selectred
+ #spli into LHSand RHS - gini = 0 / sample 7 classified as not ssletec >> at thsi level oru rtee becomes perfectyl classiying the two classes...
+
+y_pred = atree.predict([X[5]])
+print('Prediced class label:',y_pred[0])
+
+>>>
+Prediced class label: No
+
+#### 4) Decision Tree for Restaurants:
+
+<ul>
+    <li>Import the restaurant.csv dataset</li>
+    <li>Use one-hot encoding to deal with categorical features.</li>
+<li>Create a decision tree classifier.</li>
+<li>Train your model.</li>
+<li>Plot the decision tree model.</li>
+</ul>
+# test the DT
+# use sample nujmber 6 and predicted class is no
+# no means abbreviation of number... an index
+restaurant = pd.read_csv('restaurant.csv', index_col = 'No')
+restaurant.head()
+
+# ;asy column wll wait is class column...
+# all otheresare features which will eb x..
+# 1st thign define targetg label y . vlaues to amke an array
+y = restaurant.pop('WillWait?').values
+# define featurs of the model... X
+X = restaurant.values
+# print and ahve a look at retrieve first 3 rows and all columns....
+X[:3,]
+
+# lot of categorical features not numerical...
+
+>>>
+array([['Yes', 'No', 'No', 'Yes', 'Some', '$$$', 'No', 'Yes', 'French',
+        '0-10'],
+       ['Yes', 'No', 'No', 'Yes', 'Full', '$', 'No', 'No', 'Thai',
+        '30-60'],
+       ['No', 'Yes', 'No', 'No', 'Some', '$', 'No', 'No', 'Burger',
+        '0-10']], dtype=object)
+
+# get rid of categorical convert to numercoal
+# use one hot encoder
+
+# onehot_encoder = OneHotEncoder(sparse=False)  # We can add drop='first'  whcih index column
+onehot_encoder = OneHotEncoder(drop='first')  # We can add drop='first'  whcih index column
+# all category features converted into numerical features....  
+# traing it suign fit
+restOH = onehot_encoder.fit(restaurant)
+# transform all category features converted into numeric features...
+restOH_data = restOH.transform(restaurant)
+
+
+# view all clumn names inside the daatset
+restaurant.columns
+
+>>>
+
+Index(['Alternate', 'Bar', 'Fri/Sat', 'Hungry', 'Patrons', 'Price', 'Raining',
+       'Reservation', 'Type', 'WaitEst'],
+      dtype='object')
+
+# change th feature names ... columns will ahve yes and no
+# use output of OH encoder which gets features name
+# this gets the new names....
+restOH.get_feature_names_out(restaurant.columns)
+
+>>>
+array(['Alternate_Yes', 'Bar_Yes', 'Fri/Sat_Yes', 'Hungry_Yes',
+       'Patrons_Some', 'Patrons_nan', 'Price_$$', 'Price_$$$',
+       'Raining_Yes', 'Reservation_Yes', 'Type_French', 'Type_Italian',
+       'Type_Thai', 'WaitEst_10-30', 'WaitEst_30-60', 'WaitEst_>60'],
+      dtype=object)
+
+
+
+# this is the number of features now in the dataset
+# use name of DF and then get fetaures name  .size gives number of features generated based on OH encodign process...
+restOH.get_feature_names_out(restaurant.columns).size
+
+# Add the drop='first' parameter to the encoding and see how many features you end up with 
+
+>>>
+
+26
+
+# build DT
+# use entropy which is Information Gain....
+rtree = DecisionTreeClassifier(criterion='entropy')
+# traing... resrOH is thw featyre set,  target values
+rtreeOH = rtree.fit(restOH_data,y)
+# plot - make sure using OH encoding names.. not old names
+fig, ax = plt.subplots(figsize=(9, 9))
+tree.plot_tree(rtreeOH, feature_names=restOH.get_feature_names_out(restaurant.columns),
+                        # class  es two  - yes and no
+                      class_names=['Yes','No'], fontsize = 10, 
+                      filled=True, rounded=True)
+None # supressing the verbose return from plot_tree
+
+# plot
+# data i split into 6 for yes and 6 for no...
+# LHS >> emtrop < 0.811 >>> high impurity..
+# number of sampes 6 yes and 2 as no...
+# split node again LHS >> entrouy = 0 samples = 4, classified as yes / 0 classified as no >> classified as yes
+# very pure as Ebtripy  - 0
+# RHS >> <0.5 and entropy =1  = num sample =4 2 yes and 2 = no, need toplsit again
+# fri or sat yes... 0.5 entropy 3 samples 1 = yes 2 as no... class will be no....
+# LHS zero----
+# entropy zero njm of sample = 2
+# class is no.. node coems pure... 
+# if we go RHS - find entropy  - 0 and samples = 1, 1 sample as yes, zero 0...
+# if we go to top LHS entropy  - 0  /4 samples all -clasfified correctly... no impurity.
+
+
+=== Lab 4 Soln NB ==== 
+
+
+## Lab Exercise Week \#4: Naïve Bayes in Machine Learning
+
+### Objective:
+The goal of this lab exercise is to understand Naïve Bayes and its application in machine learning. You will apply a naïve bayes classifier to the spam dataset and use it to make predictions.
+
+### Datasets:
+For this lab exercise, you'll use the spam.csv dataset from Brightspace.
+
+### Libraries:
+`scikit-learn` provides multiple implementations of Naive Bayes that differ on how conditional probabilities are calculated. So the different implementations are suitable for different types of data. 
+
+- `CategorialNB` will work with categorical data once it is processed using an `OrdinalEncoder`
+- `GaussianNB` assumes the numerical features have a Gaussian distribution
+- `BernoulliNB` binary data
+- `MultinomialNB` count data, e.g. word counts, text classification
+
+### Tasks:
+
+#### 1). Data Loading and Libraries:
+<ul>
+<li>Import all needed libraries.</li>
+<li>Load the spam.csv dataset.</li>
+<li>Explore the dataset to understand its structure and features.</li>
+<li>Select approprate features for a your model.</li>
+</ul>
+import numpy as np # numercal conputations
+import pandas as pd # handle datasets
+import matplotlib.pyplot as plt # visualisation
+from collections import Counter # count text words inside text
+from sklearn import feature_extraction, model_selection, naive_bayes, metrics  #exgtract features insdie yuor datag / # select models that are related to trainin and test split / NB =classifier / metrics precisino/recal/accuracy and # F1 score... 
+from IPython.display import Image # used to display the images...
+import warnings # import warnggins  then ignore al wornings
+warnings.filterwarnings("ignore")
+%matplotlib inline  
+
+#specifued encoding.. so cna to dounter vectorizer correctly
+data = pd.read_csv('spam.csv', encoding='latin-1')
+# retrivee 1st 1- samples in df
+data.head(n=10)
+
+# some unnamed features... can drop them... so classificatino mainly on sentences yuo ahve inside yuor dataset
+
+#### 2). Data Exploration:
+Count how many spam and ham emails it contains and visualise this in a bar chart or pie chart.
+# how many ham and how many spam...
+# 1st  - do count class - how many span and ham >> ussing values.count number of samples per each class...
+# sort  = true. alphabetically sort
+count_Class=pd.value_counts(data["v1"], sort= True)
+# plot bar graphh - cna change colour... and give title..can also use different types of charts... pie for e.g.
+count_Class.plot(kind= 'bar', color= ["blue", "orange"])
+plt.title('Bar chart')
+plt.show()
+
+# can also use different types of charts... pie for e.g.
+count_Class.plot(kind = 'pie',  autopct='%1.0f%%')
+plt.title('Pie chart')
+plt.ylabel('')
+plt.show()
+
+# majority are hame.. 0.17
+# minority are spam.. 0.13
+
+
+#### 3). Text Analytics:
+Find the frequencies of words in spam and ham messages. The message text will be our descriptive feature. We can use a Counter object to collect frequencies.
+# count nunebr of words for each sentence yuo have....
+# first  - specificy which class we a dign wiht word inside it >> give it the col with the etxt
+# want just ham labelled... tae highest 20 words frequencis....
+count1 = Counter(" ".join(data[data['v1']=='ham']["v2"]).split()).most_common(20)
+# save all the words from above - top 20 words based no their frequency...
+df1 = pd.DataFrame.from_dict(count1)
+# do renamign on df1 - col 1 words in no spane and col 2 count.... indexex zero and 1
+df1 = df1.rename(columns={0: "words in non-spam", 1 : "count"})
+# do same for spam--- get word count frequency in spam - top 20 # splti sentence into words...rename cols
+count2 = Counter(" ".join(data[data['v1']=='spam']["v2"]).split()).most_common(20)
+# splti sentence into words...
+df2 = pd.DataFrame.from_dict(count2)
+# rename cols
+df2 = df2.rename(columns={0: "words in spam", 1 : "count_"})
+# df1 has each word inside ham
+df1.plot.bar(legend = False)
+# values based on their position...arraneg valeus in the below column... words in non-spam... then plto this...
+y_pos = np.arange(len(df1["words in non-spam"]))
+# plot of top 20 most frequent words based on words extracte d from the counter for ham...
+plt.xticks(y_pos, df1["words in non-spam"])
+plt.title('More frequent words in non-spam messages')
+plt.xlabel('words')
+plt.ylabel('number')
+plt.show()
+# repeat for span....
+df2.plot.bar(legend = False, color = 'orange')
+y_pos = np.arange(len(df2["words in spam"]))
+plt.xticks(y_pos, df2["words in spam"])
+plt.title('More frequent words in spam messages')
+plt.xlabel('words')
+plt.ylabel('number')
+plt.show()
+# can see a lto of words.. eclude the stop words.. "to", "it" etc
+We can see that the majority of frequent words in both cases are stop words such as 'to', 'a', 'or' and so on. These are the most common words in the English language.
+
+
+#### 4). Feature Engineering:
+Extract the features, fit and transform by using `sklearn.feature_extraction` and `fit_and_transform`. Check the shape of your features.
+# ise feature exrtaction library count vectoriser use to exclude words from...
+# convert each messga from bag of words...# to a vecotr
+# remove stop words
+# count words appearance
+# is multi-lingual
+f = feature_extraction.text.CountVectorizer(stop_words = 'english')
+#  for  = train?
+# 
+X = f.fit_transform(data["v2"])
+np.shape(X)
+
+>>>
+
+(5572, 8411)
+
+
+#### 5). Training and Test Set Preparation:
+Use the `train_test_split` function to split the dataset in training and test (1/3). Test the split by printing out the shape of both sets.
+# encoding for our columns - similar to One Hot encoding - categorical into numercoal labels
+data["v1"]=data["v1"].map({'spam':1,'ham':0})
+# matrx of the words after doing count vecotorzer...
+# text size?
+
+X_train, X_test, y_train, y_test = model_selection.train_test_split(X, data['v1'], test_size=0.33, random_state=42)
+# check shape... and name of arrays...
+print([np.shape(X_train), np.shape(X_test)])
+# x is split intoto 33% for testign and remainder fo rtraining....
+
+>>> 
+[(3733, 8411), (1839, 8411)]
+
+#### 6). Prediction:
+Use the `MultinomialNB` classifier from the `naive_bayes` package to fit and predict the target variable. Find out what the regularisation parameter &alpha; means and try to find the best value for it.
+# first thing is list of alpha... 
+# using a;pha values for lapplace smoothing .. sart .. end .. number of steps....
+list_alpha = np.arange(1/100000, 20, 0.11)
+score_train = np.zeros(len(list_alpha)) # an arrary savign values for traingin data
+score_test = np.zeros(len(list_alpha)) # craete zero numpy arrary for all wiht same lengths as list aplpha...
+recall_test = np.zeros(len(list_alpha)) # save score for traingn for each valeuof alpha...
+precision_test= np.zeros(len(list_alpha)) # # same for each value of alpha... 
+# 4 variables. 1st one os traingin  / 2nd one testign  / precision for testing...
+count = 0 # counter to check how many values for alpha we have  - apha it means for each valeu int hr array we will define a NB classifier...
+for alpha in list_alpha:
+    bayes = naive_bayes.MultinomialNB(alpha=alpha)
+    # train the model for x and y
+    bayes.fit(X_train, y_train)
+    score_train[count] = bayes.score(X_train, y_train)
+    # see the core of the training - for first one / first alpha / will compute the accuracy of NB classifier for traing data and saved inside thsi array..
+    score_test[count]= bayes.score(X_test, y_test)
+    # same for recall and precision
+    # metrics is a built in function...
+    recall_test[count] = metrics.recall_score(y_test, bayes.predict(X_test))
+    precision_test[count] = metrics.precision_score(y_test, bayes.predict(X_test))
+    # increment count by 1 - every time we save into the array index increses until we hit last index of alpha rray
+    
+    count = count + 1 
+
+
+#### 7). Evaluation:
+
+The `MultinomialNB` object you used for your prediction, also has variables for `score` (accuracy), `precision` and `recall`. Use them to create a matrix with your results (ideally for different &alpha; values). How good was your prediction on the test set?
+# we wll save all the values inside it 
+matrix = np.matrix(np.c_[list_alpha, score_train, score_test, recall_test, precision_test])
+# define columsn absed no alpha variables or give descriptive names...
+# alpha is value of akpha / accuracy if traingin  / acc f testign etc...
+models = pd.DataFrame(data = matrix, columns = 
+             ['alpha', 'Train Accuracy', 'Test Accuracy', 'Test Recall', 'Test Precision'])
+models.head(n=10)
+# check values to make sure that your clasifier is working correctly or not.... 
+# training accuracy will not give you an indication  whether thsi classifier is working correctly or not
+# as the data is already been seen with the model during the training  d
+# b ut testing one is not seen during training, asw e already do the splitting 
+# so thsi is the best option to classify yuor model...
+
+
+# check first 10 rows.. which is first 10 alpha values... ascending order
+# incrementing byth approx .11
+# accuracy is almost 100% >>> means is workgin fine but check the testgin it is alao 97% so about 2 ^ gap betwene etstgin and tarinnig....
+
+
+# to get best model base dni test precision...
+# models = df
+best_index = models['Test Precision'].idxmax()
+# after get lcoation and values... use iloc and index of highest value...
+# index location  = iloc..
+# retrive eall the columns... if remove : would get onyl the valeu retrieved...
+models.iloc[best_index, :]
+
+# this is all the columsn from index based on ??
+# training accuracy = 
+# check best mdoel based on recall? it woudl eb different...
+# check best model based on test accuracy be different again...
+# predicted value from NB classifier
+# buidl a df which will eb CM - confusion matrix..
+m_confusion_test = metrics.confusion_matrix(y_test, bayes.predict(X_test))
+pd.DataFrame(data = m_confusion_test, columns = ['Predicted 0', 'Predicted 1'],
+            index = ['Actual 0', 'Actual 1'])
+
+# this is the solution for the lab....
+
+
+
+===== Lab 5 Soln Regression and SVM ====
+
+
+
+## Lab Exercise Week \#5: Regression and SVM in Machine Learning
+
+### Objective:
+The goal of this lab exercise is to understand Linear Regression, Logistic Regression, SVMs and their application in machine learning. You will apply each of the mentioned regression models to the various datasest and use them to make predictions.
+
+### Datasets:
+For this lab exercise, you'll use the bike_sharing.csv, AthleteSelection.csv, HotelRevHelpfulnessV2.csv and weightV2.csv datasets from Brightspace.
+
+### Libraries:
+`scikit-learn` provides implementations of Linear and Logistic regression,  a gradient descent regressor and several flavours of a support vector classifier. You can find information on SVMs in sklearn here: https://scikit-learn.org/stable/modules/svm.html
+
+### Tasks:
+
+#### 1). Linear Regression:
+<ul>
+<li>Import all needed libraries.</li>
+<li>Load the weightV2.csv dataset.</li>
+<li>Explore the dataset to understand its structure and features.</li>
+<li>Select approprate features for a your model.</li>
+<li>Fit a linear regression model, make predictions and plot the prediction line on a scatter plot.</li>
+</ul>
+import pandas as pd
+import numpy as np
+from sklearn.linear_model import SGDRegressor
+from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LogisticRegression
+# don't need to craete form scratch just cerat an instance for each mode you need
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler # for scaling data -- normalization also MinMax + Robust scaler
+# standard scaler
+from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_squared_error
+
+
+
+import pandas as pd
+from sklearn.linear_model import SGDRegressor
+weight_pd = pd.read_csv('weightV2.csv')
+weight_pd.head()
+# weight_pd.shape
+# input = waist 
+# output = weight
+# define inptu putput - y = target valriable
+y = weight_pd.pop('Weight').values # target values of model - name of df and name of column .values means it is an array for all values of weight... will eb removed from df
+X = weight_pd.values # wil ahve waist values
+y.shape
+
+>>>
+
+(251,)
+
+from sklearn.linear_model import LinearRegression
+# crteate an istance for LR model...
+# take X - input features (waist)
+# target values  = y (weight)
+# .fir trains the model on the data provided...it calculates the best slope and intercept to fit a line through the data — minimising the squared errors (exactly the L₂ loss from your slides)
+reg = LinearRegression().fit(X, y)
+# After .fit() runs, the model knows its coef_ (slope) and intercept_ values.
+print(' R squared statistic: {:.2f}'.format(reg.score(X, y)))
+# co-efficien is slope
+# :.2f returns a flost with 2 decimal places...
+print(' Slope: {:.2f}'.format(reg.coef_[0]))
+print(' Intercept: {:.2f}'.format(reg.intercept_))
+
+# if 0.76 close to 1 is clsoer to 1 so working alright...
+# if zero no relationship between mddel and data
+
+
+>>>
+
+R squared statistic: 0.76
+ Slope: 2.31
+ Intercept: -35.45
+
+import matplotlib.pyplot as plt
+%matplotlib inline
+# .predict(X) After the model has been trained with .fit(), .predict() uses the learned slope and intercept to calculate # the predicted y value for every x value in your dataset. So internally it's just doing: Y_pred = slope × X + intercept
+# for every waist measurement in X, giving you back a predicted weight for each one.
+Y_pred = reg.predict(X)
+
+plt.scatter(X, y, s = 10)
+plt.plot(X, Y_pred, color='red')
+plt.xlabel('Waist')
+plt.ylabel('Weight')
+plt.title ('Weight v Waist with Regression Line' )
+plt.show()
+# blue dots = actual values
+# red lien  = regression line.
+# some farway awat.. thats why line is 0.76 only... as R squared statistic...
+#### 2). Multivariate Regression:
+<ul>
+<li>Load the bike_sharing.csv dataset.</li>
+<li>Explore it and select features.</li>
+<li>Use a standard scaler to fit your model and show your coefficients.</li>
+<li>Use a stochastic gradient descent regressor and measure+compare results (MSE, MAE, RMSE).</li>
+</ul>
+bikes_df = pd.read_csv('bike_sharing.csv')
+bikes_df.head()
+# target is count - we want to predict the count
+# more than 1 feature here... 
+# some features are useful and some are not...
+# get putput valeus and set tem as y
+y = bikes_df.pop('count').values   # target values values puts it as an array
+#pop off features that are not useful
+# get rid of useless columns...
+bikes_df.pop('casual') # dont' add value
+bikes_df.pop('registered') # dont' add value
+bikes_df.pop('instant') # don't need ID 
+bikes_df.pop('dteday') # don't need datw time column either... so remove all
+
+# X has x features now only...
+X = bikes_df.values
+
+
+
+X.shape
+
+>>>
+(731, 11)
+
+# get names of colmns just t view...
+bikes_df.columns
+
+>>>
+
+Index(['season', 'yr', 'mnth', 'holiday', 'weekday', 'workingday',
+       'weathersit', 'temp', 'atemp', 'hum', 'windspeed'],
+      dtype='object')
+
+# Ordinary Least Squares regression
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler
+# standard scaler  - std  = 1 and mean  = 0 >>> for fatse conversio in model
+# without scaler some avlues woudl eb large and soke small
+# so important to standard  / normalise
+# build 
+X_scal = StandardScaler().fit_transform(X) 
+
+# build linear regresisn model
+reg = LinearRegression().fit(X_scal, y)
+
+# get scores of the mdoel
+# {:.3f} = 3 decimal places
+# {:.2f} = 3 decimal places
+print(' R squared statistic: {:.3f}'.format(reg.score(X_scal, y)))
+print(' Intercept: {:.2f}'.format(reg.intercept_))
+
+# R squared statistic: 0.800
+# Intercept: 4504.35
+
+>>>>
+
+R squared statistic: 0.800
+ Intercept: 4504.35
+
+#print out the weights for each feature inside our dataset...
+# see whcih features matter the most - view the weights...
+# zip pairs up two lists by element , like a zipper...
+#  reg.coef_ is the slope and we have one per feature.... it is the "  w  " vector form the lecture equations
+# reg,intercept is w[0] (the bias/intercept term)
+# In Maths /statistics w[0] = intercept // in ML w]0] is called the bias
+for i,j in zip(reg.coef_, bikes_df.columns):
+    print(i,j)
+    
+# In multivariate regression you have one slope/coefficient per feature, so reg.coef_ is now a list rather than a single number. This loop lets you see:
+
+# Which features have a large positive coefficient → strong positive influence on the target
+# Which features have a large negative coefficient → strong negative influence
+# Which features have a coefficient near zero → little influence on the target
+
+# It's essentially a quick way to see which features matter most to your model.
+
+>>>
+
+565.8744533798854 season
+1020.3507460886499 yr
+-134.46199109612894 mnth
+-86.69260451551597 holiday
+138.36029286893617 weekday
+55.95577694359886 workingday
+-332.6955680380428 weathersit
+371.14099460440514 temp
+581.9065590011769 atemp
+-145.01623946104408 hum
+-198.07054397855825 windspeed
+
+
+#Stochastic Gradient Descent Regressor
+ # stochastic gradient descent
+ # SGDRegressor is doing the same job as LinearRegression (finding the best weights/slopes) but using a different method to get there — Stochastic Gradient Descent, 
+# number of times model will apss through the dataset... i.e. 50 times... tolerance = stop in case improvement is < 01e-3)
+# max_iter=50    # passes through the full dataset 50 times (50 "epochs") -  but may stop sooner if it's converged.
+# tol=1e-3       # stops early if improvement between passes drops below 0.001
+
+# Instead of calculating the gradient on the full dataset each pass, it picks random individual samples to update the weights — this is exactly the gradient descent from your slides but applied one (or a few) random examples at a time rather than all n instances at once. It's noisier but much faster on large datasets.
+
+from sklearn.linear_model import SGDRegressor
+SGD = SGDRegressor(max_iter=50, tol=1e-3).fit(X_scal, y)
+print(' R squared statistic: {:.3f}'.format(SGD.score(X_scal, y)))
+print(' Intercept: {:.2f}'.format(SGD.intercept_[0]))
+
+# R squared statistic: 0.800
+# Intercept: 4501.94
+
+
+>>>
+R squared statistic: 0.800
+ Intercept: 4510.04
+
+
+# print each co-efficient  for each feature
+for i,j in zip(SGD.coef_, bikes_df.columns):
+    print(i,j)
+    
+    # differenc ebetween linerar regression and stochastic is different as intercept is different
+    # when low are better
+    # Same as before — it's printing the coefficient (slope) for each feature, just now for the SGD model instead of the Linear Regression model.
+# The interesting part is comparing these coefficients to the ones from LinearRegression:
+
+# If the dataset is large enough, SGD should converge to roughly the same weights as ordinary Linear Regression
+# But they'll rarely be exactly the same because SGD is stochastic (random) and iterative — it's approximating the # solution rather than solving it exactly
+# The intercept difference your comment mentions is a good example of this — SGD gets close but not identical
+
+# Think of it like this:
+
+# LinearRegression = solving a maths problem with an exact formula, always same answer
+# SGDRegressor = repeatedly making small educated guesses until you're close enough, slightly different each run due to randomness
+
+# Same destination, different route — and SGD sometimes doesn't arrive at exactly the same spot.
+
+>>>
+
+552.344413680922 season
+1022.8518773496822 yr
+-124.40204125543251 mnth
+-88.42856937099697 holiday
+139.05439796470364 weekday
+54.781642192685396 workingday
+-333.4084649406954 weathersit
+458.15556414562656 temp
+505.94660756862095 atemp
+-144.72284195868767 hum
+-199.53518253858945 windspeed
+
+from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_squared_error
+import numpy as np
+
+# This is calculating three different ways to measure how wrong the model's predictions are — error metrics.
+# root mean squred error function
+def RMSE(y_true, y_pred): 
+    return np.sqrt(mean_squared_error(y_true, y_pred))
+
+# MAE — Mean Absolute Error
+# average of |actual - predicted|
+# Takes the difference between each prediction and actual value, ignores the sign, averages them
+# Easy to interpret — "on average my predictions are off by X units"
+
+print('MSE: %.2f'
+      % mean_squared_error(y, SGD.predict(X_scal)))
+
+# MSE — Mean Squared Error - average of (actual - predicted)²
+# Same but squares the errors before averaging
+# This is the L₂ loss from your slides!
+# Squaring means **big errors are penalised much more** than small ones
+# Harder to interpret because the units are squared (e.g. kg²)
+
+print('MAE: %.2f'
+      % mean_absolute_error(y, SGD.predict(X_scal)))
+
+# RMSE — Root Mean Squared Error - √(MSE)
+# Just the square root of MSE
+# Brings units back to normal (e.g. kg instead of kg²)
+# Still penalises big errors heavily like MSE, but now interpretable like MAE
+# Most commonly used in practice — notice sklearn doesn't include it built-in, which is why a custom function is defined:
+
+print('RMSE: %.2f'
+      % RMSE(y, SGD.predict(X_scal)))
+
+# MSE: 748841.45
+# MAE: 644.63
+# RMSE: 865.36
+
+# | Metric | Penalises big errors? | Easy to interpret? |
+# |---      |---                    |---             |
+# | MAE | No, treats all errors equally | Yes |
+# | MSE | Yes, heavily                  | No (squared units) |
+# | RMSE | Yes, heavily                 | Yes |
+
+# tell su show good the model is...
+# R² tells you "how well does the model explain the variance in the data" — a relative measure between 0 and 1.
+# But MAE/MSE/RMSE tell you how wrong your predictions are in actual units — much more practical. For example:
+
+# R² = 0.80 sounds good but doesn't tell you much concretely
+# RMSE = 50kg tells you your predictions are off by ~50kg on average — now you can judge if that's acceptable or not
+
+# So together they give you a fuller picture of model performance:
+
+# R² → how well the model fits overall
+# RMSE/MAE → how big the errors are in real terms
+
+>>>
+
+MSE: 748906.86
+MAE: 644.98
+RMSE: 865.39
+
+#### 3). Logistic Regression:
+<ul>
+<li>Load the AthleteSelection.csv dataset.</li>
+<li>Explore it and select features.</li>
+<li>Fit a logistic regression model and show coefficients + r squared statistic.</li>
+<li>Compare to results with standard scaler.</li>
+</ul>
+athlete_pd = pd.read_csv('AthleteSelection.csv')
+# sort bvased on agility
+# won't do any implacment - no replacement for any other columns
+# sorted in standing order...
+athlete_pd.sort_values('Agility',inplace = True, ascending = False)
+athlete_pd.head(5)
+# selected is target column
+# y is target value and an array using values...
+y = athlete_pd.pop('Selected').values
+# don't need athlete feature.. will remove using .pop
+athlete_pd.pop('Athlete')  # get rid of ids from dataset
+X = athlete_pd.values
+X.shape
+
+>>>
+(20, 2)
+
+
+from sklearn.linear_model import LogisticRegression
+# create an instance of LogReg model...
+# liblinear is just the algorithm use dinternally to find the best weights... this is a godo default for small datasets
+ #for log reg no longer R squred... it is now accuracy (% of correctly classified examples...)
+lreg = LogisticRegression(solver='liblinear').fit(X, y)
+print(' R squared statistic: {:.2f}'.format(lreg.score(X, y)))
+
+# Still coefficients/weights per feature like before
+# But now coef_ is 2D (notice [0][0] instead of just [0]) because logistic regression is built to handle **multiple # classes**# meas retrieving the co-eff for first feature... slope of first feature
+# 2nd is co-eff of agility... slopt and frit column indexing of columns....
+print(' Speed: {:.2f} Agility: {:.2f}'.format(lreg.coef_[0][0],
+                                              lreg.coef_[0][1]))
+#  same bias / intercept as before
+print(' Intercept: {:.2f}'.format(lreg.intercept_[0]))
+
+
+# So the big picture shift here is you've moved from predicting a number to predicting which class/category something # belongs to — that's the fundamental difference between regression and classification.
+
+ # squared statistic: 0.85 ## closer to 1  = better fit for data / further away doesn't work wel for data
+ # Speed: 0.38 Agility: -0.05
+ # Intercept: -1.61
+
+
+>>>
+
+R squared statistic: 0.85
+ Speed: 0.38 Agility: -0.05
+ Intercept: -1.61
+
+# Normalise the values and see the impact on performance on the training data
+from sklearn.preprocessing import StandardScaler
+# normalisatio very important as some values so high and some so low...
+ #so need normalisatin
+ X_scal = StandardScaler().fit_transform(X)
+# trai model.. using descriptiev features of x and target features of y
+lreg = LogisticRegression(solver='liblinear').fit(X_scal, y)
+
+
+print(' R squared statistic: {:.2f}'.format(lreg.score(X_scal, y)))
+print(' Speed: {:.2f} Agility: {:.2f}'.format(lreg.coef_[0][0],lreg.coef_[0][1]))
+print(' Intercept: {:.2f}'.format(lreg.intercept_[0]))
+
+# R squared statistic: 0.95 >> # close to 1 model performign wel on data
+#  Speed: 1.76 Agility: 0.83 >> 
+#  Intercept: -0.37 >> intercept cecresed  >> scaling afected Log reg model >. important to do normalisation
+# means want first 5 rows inside this arrary.... after w applyied the scaler...
+# scaling is very important...
+X_scal[:5]
+
+>>>
+
+array([[ 0.37882399,  1.6692244 ],
+       [ 0.5843874 ,  1.3274037 ],
+       [ 2.05269746,  1.21346347],
+       [-0.88392265,  1.09952324],
+       [ 1.61220444,  0.98558301]])
+
+
+
+#### 4). SVMs:
+<ul>
+<li>Load libraries and the HotelRevHelpfulnessV2.csv dataset.</li>
+<li>Explore it, get an overview of overall, positive and negative samples, and select features.</li>
+<li>Use a standard scaler and create a test/train split.</li>
+<li>Fit your model and make predictions on a linear kernel.</li>
+<li>Measure accuracy and create a classification report</li>
+</ul>
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC # import svc mdoel form sklearn 
+from sklearn.model_selection import train_test_split # improt model selectin to use tra6tn and test fucntino
+from sklearn.metrics import classification_report # metrics we are suing  /CM amd accuracyh score
+from sklearn.metrics import confusion_matrix, accuracy_score # don't need to define f1, recision etc as already part of classificiont report imported earlier...
+hotel_rev = pd.read_csv('HotelRevHelpfulnessV2.csv')
+hotel_rev.head()
+# oritn how many sa els are inside to see how many positive and how manyh negative
+ # get # of samples inside the dataframe
+n = hotel_rev.shape[0]
+ # cont how much positive and how much negative
+ # target column is review helpfulness... 1  = helpful 0 = not helpful...
+np = hotel_rev['reviewHelpfulness'].sum() # use sum to get number of ones....!
+nn = n - np
+print('{} Samples'.format(n))
+print('{} Positive \n{} Negative'.format(np,nn))
+
+# 486 Samples
+# 308 Positive 
+# 178 Negative
+
+>>>
+
+486 Samples
+308 Positive 
+178 Negative
+
+# creat y array for target values
+# all colmsn are numerical... no categorocal and no oen is not important...
+# so use all columns / features...
+y = hotel_rev.pop('reviewHelpfulness').values
+# take values as they are 
+Xraw = hotel_rev.values
+scaler = StandardScaler()
+# scale using for_transfor function
+X = scaler.fit_transform(Xraw)
+# split into train and test....
+# test size 1/3 means if 10 samples >>> trainnig will be 2/3 8 test will be 1/3 
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0, test_size=1/3)
+print("X_test shape: ",X_test.shape)
+print("X_train shape: ",X_train.shape)
+print("y_test shape: ",y_test.shape)
+print("y_train shape: ",y_train.shape)
+
+
+# X_test shape:  (162, 23)
+# X_train shape:  (324, 23)
+# y_test shape:  (162,)
+# y_train shape:  (324,)
+
+>>>
+
+X_test shape:  (162, 23)
+X_train shape:  (324, 23)
+y_test shape:  (162,)
+y_train shape:  (324,)
+
+# create an instance for model...
+# will sue linear and c=1
+svm = SVC(kernel = 'linear',C=1)   
+# traing it using .fit
+hotel_rev_SVM = svm.fit(X_train, y_train)
+# test wiht ruo test data... using .predict
+y_dash = hotel_rev_SVM.predict(X_test)
+# calculate accuracy
+# y_dash is predicted valeus fomr svm model
+acc = accuracy_score(y_test, y_dash)
+print("Accuracy: {0:.2f}".format(acc)) 
+confusion = confusion_matrix(y_test, y_dash)
+print("Confusion matrix:\n{}".format(confusion)) 
+
+# Accuracy: 0.69
+# Confusion matrix:
+# [[30 32]
+#  [18 82]]
+
+>>>
+
+Accuracy: 0.69
+Confusion matrix:
+[[30 32]
+ [18 82]]
+
+# use confusio matrix to check actai numebrs predictyed and incorectly predicted...
+# if didn't sue target names not helpful this means this is the zero and helpful means this is = 1
+report = classification_report(y_test, y_dash, target_names = ['Not Helpful','Helpful'])
+
+print("Report:\n{}".format(report)) 
+
+Report:
+              precision    recall  f1-score   support
+
+ Not Helpful       0.62      0.48      0.55        62
+     Helpful       0.72      0.82      0.77       100
+
+    accuracy                           0.69       162
+   macro avg       0.67      0.65      0.66       162
+weighted avg       0.68      0.69      0.68       162
+
+
+
+
+=== Lab 6 Soln Model Evaluation  ====
+
+
+
+## Lab 5: Model Evaluation in Classification with Breast Cancer Dataset
+
+In this lab you will be focusing on model evaluation using a larger dataset, specifically the famous Breast Cancer Wisconsin (Diagnostic) dataset, found on scikit-learn dataset reporistory. This dataset contains features computed from a digitized image of a fine needle aspirate (FNA) of a breast mass, and the target variable indicates whether the mass is benign or malignant.
+
+### Objective:
+
+In this lab, you will evaluate the performance of different classification models using various evaluation metrics and techniques on the Breast Cancer Wisconsin (Diagnostic) dataset. The classification models that you will look for are: Support Vector Machines (SVM), Random Forest and Gradient Boosting. The tasks involved are:
+
+
+
+#### 1) Load the Breast Cancer dataset
+
+Load the nessecary python libabries and the breast cancer dataset (the name of the dataset from scikit-learn is: <code>load_breast_cancer</code>). Select also data and train targets.
+
+import numpy as np # for numerical calculations
+import pandas as pd # dataframe
+from sklearn.datasets import load_breast_cancer # sklearn buitl in datasets....
+from sklearn.model_selection import train_test_split, cross_validate # mdel selectnio for cross valdiation, splitting and tes6ogm of dataset
+from sklearn.svm import SVC # SVC willbe one models we will evaluate today
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier # along with models RF classifier
+# in ensembles one
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, roc_curve
+#  for scores and comparison
+import matplotlib.pyplot as plt #visualisations
+
+# Step 1: Load the Breast Cancer dataset
+data = load_breast_cancer()
+# whe have built in dataset can etrieve them without known the names of the columns
+# don't need details of target features etc as buitlt in data
+# cancerous vs non-cancerous
+# both are arrays
+X = data.data # 2 D array of features - 30 features per sample
+y = data.target #  1D array of labels (0=malignant ans 1 = benign)
+
+
+#### 2) Preprocess the data (if necessary).
+
+Perform an initial analysis of the daatset! If the data quaility is fine (no missing data etc.) You cna skip this step. 
+
+- This data set is clean : no missing values, numeric features only
+
+- SCaling may help SVM, but Random Forest and Gradient Boosting don't require scaling
+-
+- check if an missing features / values... 
+# X.shape
+# y.shape
+# checks for missing values within the dataset
+# convert numpy array into a dataframe - returns true/false for every cell (True is missing (NaN)
+# sums each column -counts missing values per column
+# sums all those column totals - gives one number...
+# output is zero so good to go...
+# all features important  - no need to drop any features....
+print(pd.DataFrame(X).isnull().sum().sum())
+
+
+#### 3) Split the data into training and testing sets.
+
+Try the split ratio of 80/20. Check and printout the output shapes after the split. 
+# 80 = testing
+# 20 = testing
+# training data for X and y should have the same number....
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
+
+>>>
+
+(455, 30) (114, 30) (455,) (114,)
+
+#### 4) Train multiple classification models
+
+The models that should be trained are: 
+
+<ul>
+<li>Support Vector Machine (SVM)</li>
+<li>Random Forest</li>
+<li>Gradient Boosting</li>
+</ul>
+
+Consider defining and using a pipeline of models and train them through the pipeline. 
+# create an instance for each class of the clasifiers...
+# SVM = is equal true  >> will be iportant for ROC curve calculation
+# RF = 
+# GB = 
+# creat a dictinoary that will define three models
+models = {
+    'Support Vector Machine': SVC(probability=True),
+    'Random Forest': RandomForestClassifier(),
+    'Gradient Boosting': GradientBoostingClassifier()
+}
+
+# train using training data that we have
+# use a for loop to loop through the dictionary...
+# train 3 models using traingi data and use .fit
+# very useful to tarin them in one lien of code...
+for name, model in models.items():
+    model.fit(X_train, y_train)
+
+
+#### 5) Evaluate the models using the following evaluation metrics:
+<ul>
+<li>Accuracy</li>
+<li>Precision</li>
+<li>Recall</li>
+<li>F1 Score</li>
+<li>ROC-AUC Score</li>
+</ul>
+# 5 evaluation metrics...
+# accuracy = overall correct predictions over predicted decicions
+# precision = correct positive predictions over totla predicted positives
+# recall  = (also called sensitivity) = this is correct positive predicytsuib / actual posisitves
+# F1 score = harmonic mean between precision and recall -can be used for handlign imbalanced data
+# ROC = area under curve - shows model ability to separate classes that we have in our dataset...
+# create a dictionary 
+metrics = {
+    'Accuracy': accuracy_score,
+    'Precision': precision_score,
+    'Recall': recall_score,
+    'F1 Score': f1_score,
+    'ROC-AUC Score': roc_auc_score
+}
+
+for name, model in models.items():
+    # print the name of the model - if don't print them will nto knwo which belngs to which classifier
+    print(f"Evaluation metrics for {name}:")
+    # predict what si output of features of your testing y_predict  = predicted values
+    y_pred = model.predict(X_test)
+    # testing the models...
+    # lop thru each metric
+    for metric_name, metric_func in metrics.items():
+        # compute the score for each metrics.. pas to y_test  = actual value predicted value
+        # y_tes and Y_predict for each model...
+        # call the metric function
+        score = metric_func(y_test, y_pred)
+        # print name of m etric that you aer evaluatig and then the score...
+        print(f"{metric_name}: {score}")
+        # just a break line between each classifier...
+    print()
+    
+#  it's a **loop within a loop**:
+# - Outer loop → each model (SVC, Random Forest, Gradient Boosting)
+# - Inner loop → each metric applied to that model's predictions
+
+# The key line is `metric_func(y_test, y_pred)` — every sklearn metric function takes the same two arguments (actual values, predicted values), which is exactly why storing them in a dictionary like this works so cleanly.
+
+>>>
+
+Evaluation metrics for Support Vector Machine:
+Accuracy: 0.9473684210526315
+Precision: 0.922077922077922
+Recall: 1.0
+F1 Score: 0.9594594594594594
+ROC-AUC Score: 0.9302325581395349
+
+Evaluation metrics for Random Forest:
+Accuracy: 0.956140350877193
+Precision: 0.9583333333333334
+Recall: 0.971830985915493
+F1 Score: 0.965034965034965
+ROC-AUC Score: 0.9510317720275139
+
+Evaluation metrics for Gradient Boosting:
+Accuracy: 0.956140350877193
+Precision: 0.9583333333333334
+Recall: 0.971830985915493
+F1 Score: 0.965034965034965
+ROC-AUC Score: 0.9510317720275139
+
+
+
+# as RF and GB have idential resutls we will do cross-validation to see if they diverge see if that is a red flag 
+from sklearn.model_selection import cross_val_score
+
+for name, model in models.items():
+    scores = cross_val_score(model, X, y, cv=5, scoring='f1')
+    print(f"{name}: {scores.mean():.4f} (+/- {scores.std():.4f})")
+
+
+>>>
+
+Support Vector Machine: 0.9339 (+/- 0.0249)
+Random Forest: 0.9707 (+/- 0.0196)
+Gradient Boosting: 0.9707 (+/- 0.0163)
+
+
+#### 6) Compare the model performance metrics
+
+Which of the models perform better? Which of these metrics would you trust the most? Why?
+
+**cancer scenario**
+
+- recall and F1 will eb better option of measrure than the others....
+- focussing on Recall = > choose SVM >> has a value of 1.0.. perfect score...
+- Focussing on F1 score = >> choose RF
+- if check Gradient - will nto find there is nay values higher than the other two...
+- really depend on application using 
+
+
+=======
+SVM stands out with Recall = 1.0
+- It correctly identified every single cancer case (no false negatives)
+- But lower Precision (0.92) means it flagged some healthy patients as cancerous
+- For cancer diagnosis this is actually the preferred trade-off — missing a cancer case is far worse than a false alarm
+- Lower ROC-AUC (0.93) despite perfect recall suggests it's being quite aggressive in predicting positive
+
+
+Random Forest and Gradient Boosting are identical here
+- Same scores across every metric — this can happen with small test sets (114 samples)
+- Both are more balanced between precision and recall than SVM
+- Slightly higher overall accuracy than SVM
+#### 7) Plot the ROC curves for each model
+plt.figure(figsize=(8, 6))
+for name, model in models.items():
+    # all samples except the last one
+    y_proba = model.predict_proba(X_test)[:, 1]
+    # tpr = true positive rate
+    # fpr  = false positive rate
+    # y_probab ?
+    fpr, tpr, _ = roc_curve(y_test, y_proba)
+    plt.plot(fpr, tpr, label=name)
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('ROC Curve')
+plt.legend()
+plt.show()
+result of plot - plot of all three shows a trade fof between sensitivity and specificity (based on FP and TP)
+curve nearer to top left is the better model
+
+#### 8) Evaluate with Cross-validation
+
+Repeat steps 4) - 7) using 10-fold cross validation during model training instead of simple holdout method. What is the difference? Why is that?
+
+# Step 4: Initialize multiple classification models
+models = {
+    'Support Vector Machine': SVC(probability=True),
+    'Random Forest': RandomForestClassifier(),
+    'Gradient Boosting': GradientBoostingClassifier()
+}
+
+# Step 5: Evaluate the models using 10-fold cross-validation
+metrics = {
+    'Accuracy': 'accuracy',
+    'Precision': 'precision',
+    'Recall': 'recall',
+    'F1 Score': 'f1',
+    'ROC-AUC Score': 'roc_auc'
+}
+
+for name, model in models.items():
+    print(f"Evaluation metrics for {name}:")
+    # cv is number of whole that wneed to apply to them for the data that we have?
+    cv_results = cross_validate(model, X, y, cv=10, scoring=metrics)
+    # lop for each fold that we have inside the data...
+    for metric_name, scores in cv_results.items():
+        # print an average for each value that w ehave...
+        # apply numpy .mean to get average of performance metrics...
+        # value of average accuracy across the 10 folds that we have...
+        # get standard deviations in accuracy scor across the 10o folds we have...
+        print(f"{metric_name}: {np.mean(scores):.2f} (+/- {np.std(scores):.2f})")
+    print()
+
+>>>
+
+Evaluation metrics for Support Vector Machine:
+fit_time: 0.08 (+/- 0.02)
+score_time: 0.05 (+/- 0.02)
+test_Accuracy: 0.91 (+/- 0.03)
+test_Precision: 0.90 (+/- 0.04)
+test_Recall: 0.98 (+/- 0.02)
+test_F1 Score: 0.93 (+/- 0.02)
+test_ROC-AUC Score: 0.98 (+/- 0.01)
+
+Evaluation metrics for Random Forest:
+fit_time: 0.63 (+/- 0.26)
+score_time: 0.06 (+/- 0.03)
+test_Accuracy: 0.96 (+/- 0.04)
+test_Precision: 0.97 (+/- 0.04)
+test_Recall: 0.97 (+/- 0.03)
+test_F1 Score: 0.97 (+/- 0.03)
+test_ROC-AUC Score: 0.99 (+/- 0.02)
+
+Evaluation metrics for Gradient Boosting:
+fit_time: 1.42 (+/- 0.30)
+score_time: 0.03 (+/- 0.01)
+test_Accuracy: 0.96 (+/- 0.03)
+test_Precision: 0.96 (+/- 0.03)
+test_Recall: 0.98 (+/- 0.02)
+test_F1 Score: 0.97 (+/- 0.02)
+test_ROC-AUC Score: 0.99 (+/- 0.01)
+
+
+- fit time  = training time...
+- score time = testing time
+
+have accuracy  = 0.91 +0.3 (acuracy and standard deviation of the accuracy)
+
+check the f1 score  >> 93 >> 97 >>> 97
+if focussing on F1 score choose betwene RF and GB classifier
+
+if you checlk recallfor SVM while using 80/20 ... earlier... btu here differnt splitting methods affectt he performance of the model
+10 fold is better than traditional traigin / testing
+
+========
+cross_validate vs cross_val_score
+
+- cross_validate is more powerful — it runs multiple metrics at once and also returns fit_time and score_time
+- That's why you're seeing fit_time and score_time in the output — they come automatically and aren't metrics you asked for
+c- v=10 means 10-fold cross validation (more reliable than the 5-fold used earlier) 
+
+
+====
+Interpreting the results:
+- SVM is now clearly the weakest
+- Accuracy only 0.91 vs 0.96 for both others
+- High Recall (0.98) still — confirms it's aggressive at catching positives
+- But ROC-AUC of 0.98 is actually strong — better than its F1 suggests
+
+
+=======
+Notable practical observations:
+
+- fit_time shows Gradient Boosting (1.42s) is 18x slower to train than SVM (0.08s) — relevant for large datasets
+- Random Forest (0.63s) is a good middle ground
+- score_time is fast for all three — predicting is cheap once trained
+
+Overall verdict — 
+- RF and GB are both excellent, with GB being marginally more stable (lower variance on most metrics). 
+- But given GB is significantly slower to train with no meaningful accuracy gain, Random Forest is the most practical choice here
+
+
+
+#### Bonus Task
+
+Try other validation methods such as Bootstrapping. See how you cna implemnt that in scikit-learn. 
+from sklearn.utils import resample # built in 
+
+n_iterations = 200  # lecture recommended >= 200
+bootstrap_scores = {name: [] for name in models.keys()}
+
+for i in range(n_iterations):
+    # resample with replacement - this is what makes it bootstrapping
+    X_boot, y_boot = resample(X, y, random_state=i)
+    
+    # out-of-bag samples (samples not selected) used for testing
+    # find indices not selected in the bootstrap sample
+    oob_indices = [i for i in range(len(X)) if i not in resample(
+        range(len(X)), random_state=i)]
+    X_test_oob = X[oob_indices]
+    y_test_oob = y[oob_indices]
+    
+    for name, model in models.items():
+        model.fit(X_boot, y_boot)
+        score = f1_score(y_test_oob, model.predict(X_test_oob))
+        bootstrap_scores[name].append(score)
+
+# print results
+for name, scores in bootstrap_scores.items():
+    print(f"{name}:")
+    print(f"  F1: {np.mean(scores):.4f} (+/- {np.std(scores):.4f})")
+Key concepts:
+- resample(...) — samples the data with replacement, meaning the same sample can be picked multiple times. This is what defines bootstrapping.
+- Out-of-bag (OOB) samples — the samples that were NOT selected in the bootstrap become the test set. On average about 37% of samples are left out each iteration, which is why it works even on small datasets
+
+
+
+**When to use each method — from your lecture:**
+- Dataset Size        Method
+- < 300 samples =     Bootstrapping
+- Medium        =     Cross-Validation
+- Very large    =     Holdout
+
+The breast cancer dataset (569 samples) is borderline — cross-validation is fine here, but bootstrapping is good to know for smaller real-world datasets.
+
+**Holdout**
+
+- Simply split your data into fixed chunks — typically 80% train, 20% test
+- Train on one chunk, test on the other, done
+- Fast but can get "lucky" or "unlucky" depending on how the split falls
+
+
+**Bootstrapping**
+
+- Repeatedly sample your data with replacement (same sample can appear multiple times)
+- Each iteration ~63% of data used for training, the leftover ~37% used for testing
+- Repeat 200+ times and average the results
+- Preferred for small datasets because you're squeezing more signal out of limited data
+
+
+**Simple analogy:**
+
+- Holdout = cut a deck of cards once and play with what you get
+- Bootstrapping = repeatedly shuffle and redeal 200 times, average your hand quality across all deals — much more reliable picture
+
+
+==== Lab 7 Soln Model Selection === 
+
+
+#  Model Selection Lab Soln
+## Grid Search for *k*-NN
+
+To get us started we have an example that fits a *k*-NN model for the `HotelRevHelpfulness` dataset. It assesses three options:
+- whether to use a StandardScaler, MinMaxScaler or no scaler. 
+- what <em>k</em> to use for <em>k</em>-NN
+- what weighting policy
+from sklearn.model_selection import GridSearchCV
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, accuracy_score
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.datasets import load_digits
+from sklearn.pipeline import Pipeline
+import pandas as pd
+hotel_rev = pd.read_csv('HotelRevHelpfulness.csv')
+hotel_rev.head()
+#hotel_rev.pop("hotelId")   # get rid of ID feature
+hotel_rev.head()
+y = hotel_rev.pop('reviewHelpfulness').values
+X = hotel_rev.values
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, 
+                                                    test_size=1/2,
+                                                    random_state=42)
+
+>>>
+
+((243, 23), (243, 23))
+
+
+
+X_train.shape, X_test.shape
+kNNpipe  = Pipeline(steps=[
+    ('scaler', StandardScaler()),
+    ('kNN', KNeighborsClassifier())])
+
+# Parameters for kNN are prefixed with kNN__
+param_grid = {'scaler':[StandardScaler(), MinMaxScaler(),'passthrough'], 
+              'kNN__n_neighbors':[1,3,5,7],
+              'kNN__weights':['uniform','distance']
+             }
+grid_search = GridSearchCV(kNNpipe, param_grid=param_grid, verbose = 1)
+grid_search = grid_search.fit(X_train,y_train)
+
+>>>
+Fitting 5 folds for each of 24 candidates, totalling 120 fits
+
+grid_search.best_params_
+
+>>>
+{'kNN__n_neighbors': 5, 'kNN__weights': 'uniform', 'scaler': 'passthrough'}
+
+
+### All grid search results
+The parameter `cv_results_` gives us access to results on all options tested.  
+We store the results in a data frame and print the important information. 
+scores_df = pd.DataFrame(grid_search.cv_results_)
+scores_df = scores_df.sort_values(by=['rank_test_score']).reset_index(drop='index')
+scores_df [['rank_test_score', 'mean_test_score', 'param_kNN__n_neighbors', 
+            'param_kNN__weights','param_scaler']]
+
+
+## Grid Search for Naive Bayes
+
+**Q1**  
+
+Repeat the exercise above to fit a Naive Bayes model.  
+Consider the same scaling options and `GaussianNB` and `BernoulliNB` as classifier options. 
+from sklearn.naive_bayes import GaussianNB, BernoulliNB
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+Pipeline similar to above but with `naive_bayes` as the classifier.  
+In the `param_grid` `GaussianNB` and `BernoulliNB` are the two options to consider for `naive_bayes`.  
+NBpipe  = Pipeline(steps=[
+    ('scaler','passthrough'),
+    ('naive_bayes', GaussianNB())])
+
+param_grid = {'scaler':[StandardScaler(), MinMaxScaler(),'passthrough'], 
+              'naive_bayes':[GaussianNB(), BernoulliNB()]
+             }
+grid_search = GridSearchCV(NBpipe, param_grid=param_grid, cv = 10, verbose = 1)
+grid_search = grid_search.fit(X_train,y_train)
+
+>>
+Fitting 10 folds for each of 6 candidates, totalling 60 fits
+
+And the winners are...
+grid_search.best_params_
+
+>>>
+
+{'naive_bayes': BernoulliNB(), 'scaler': StandardScaler()}
+
+scores_df = pd.DataFrame(grid_search.cv_results_)
+scores_df = scores_df.sort_values(by=['rank_test_score']).reset_index(drop='index')
+scores_df[['rank_test_score','param_naive_bayes','mean_test_score','param_scaler']]
+
+
+## Grid Search for Decision Trees
+
+**Q2**  
+
+Find the best decision tree model for the `HotelRevHelpfulness` dataset considering  `max_leaf_nodes` and the splitting `criterion`. The splitting `criterion` can be either 'gini' or 'entropy', you can select your own options for `max_leaf_nodes`.
+from sklearn.tree import DecisionTreeClassifier
+There are no preprocessing steps so there is no need for a pipeline.   
+We go with [3,5,10,20,50] as the options for `max_leaf_nodes`.
+tree_grid = {'criterion':['gini','entropy'], 
+              'max_leaf_nodes':[3,5,10,20,50],
+             }
+tree = DecisionTreeClassifier()
+tree_search = GridSearchCV(tree, param_grid=tree_grid, cv = 10, verbose = 1)
+tree_search = tree_search.fit(X_train,y_train)
+
+>>
+Fitting 10 folds for each of 10 candidates, totalling 100 fits
+
+The winning parameters are...
+tree_search.best_params_
+
+>>
+
+{'criterion': 'gini', 'max_leaf_nodes': 5}
+
+The main message we can take from looking at all the results is that less leaf nodes is inclined to be better.   
+This suggests that bushier trees are inclined to overfit.  
+scores_df = pd.DataFrame(tree_search.cv_results_)
+scores_df = scores_df.sort_values(by=['rank_test_score']).reset_index(drop='index')
+scores_df[['rank_test_score','param_criterion','mean_test_score','param_max_leaf_nodes']]
+
+
+## Model selection
+
+**Q3**
+
+Which model would you recommend for this dataset?
+It's a toss up between a Decision Tree using the gini splitting criterion and max_leaf_nodes = 5 and a k-NN classifier with *k*=5, uniform weighting and no scaling   
+
+
+===========
+
+- 'duration': delete feature
+- pdays > change '-1' value to zero + log transform using 'log1p'  + apply RobustScalar
+- 'age': apply RobustScalar + dtype remains as 'int64'
+- 'balance': apply RobustScalar + dtype remains as 'int64'
+- 'day': apply RobustScalar + dtype remains as 'int64'
+- 'campaign': log transform using 'log1p' + apply RobustScalar + dtype remains as 'int64'
+- 'previous': log transform using 'log1p' + apply RobustScalar + dtype remains as 'int64'
+- 'job': one-hot encoding for all 12 categories + dtype changes to 'int64'     
+    - 'marital': one-hot encoding for 3 values 'married', 'single' and 'divorced' + dtype changes to 'int64'        
+    - 'education': one-hot encoding for 4 values 'unknown', 'primary', 'secondary' and 'tertiary' + dtype changes to 'int64' 
+    - 'contact': one-hot encoding for 3 values 'cellular', 'unknown' and 'telephone' + dtype changes to 'int64'  
+    - 'month':  one-hot encoding for all 12 months + dtype changes to 'int64'                    
+    - 'poutcome': one-hot encoding for 4 values 'unknown', 'failure', 'other' and 'success' + dtype changes to 'int64'  
+
+- Removal
+    - 'duration': delete feature
+
+
+- 'pdays': 
+    - create new feature 'contacted_previously' 
+        - dtype = 'int64'
+        - 1 = contacted previously 
+        - 0 = not contacted previously
+    - existing column
+        - change '-1' value to zero + log transform using 'log1p'  + apply RobustScalar
+        - name is same + dtype remains 'int64'
+
+
+- Scale
+    - 'age': apply RobustScalar + dtype remains as 'int64'
+    - 'balance': apply RobustScalar + dtype remains as 'int64'
+    - 'day': apply RobustScalar + dtype remains as 'int64'
+
+- Log Transform then scale
+    - 'campaign': log transform using 'log1p' + apply RobustScalar + dtype remains as 'int64'
+    - 'previous': log transform using 'log1p' + apply RobustScalar + dtype remains as 'int64'
+
+- One-Hot encoding
+    - 'job': one-hot encoding for all 12 categories + dtype changes to 'int64'     
+    - 'marital': one-hot encoding for 3 values 'married', 'single' and 'divorced' + dtype changes to 'int64'        
+    - 'education': one-hot encoding for 4 values 'unknown', 'primary', 'secondary' and 'tertiary' + dtype changes to 'int64' 
+    - 'contact': one-hot encoding for 3 values 'cellular', 'unknown' and 'telephone' + dtype changes to 'int64'  
+    - 'month':  one-hot encoding for all 12 months + dtype changes to 'int64'                    
+    - 'poutcome': one-hot encoding for 4 values 'unknown', 'failure', 'other' and 'success' + dtype changes to 'int64'    
+
+- Convert text to Binary Numeric categorical
+    - 'default': change 'yes' to 1 and 'no' to 0 + dtype changes to 'int64'         
+    - 'housing': change 'yes' to 1 and 'no' to 0 + dtype changes to 'int64'       
+    - 'loan': change 'yes' to 1 and 'no' to 0 + dtype changes to 'int64'  
+
+
+
+- Training data only change
+    - 'y': change 'TypeB' to 1 and 'TypeA' to 0 + dtype changes to 'int64'          
+
+
+
+==== WRITE UP  - SMOTE ====
+ tried SMOTE - below are avlus
+                    AUC     F1    Recall  Precision
+GB threshold=0.20  0.792  0.456   0.472    0.442   ← better
+GB + SMOTE         0.766  0.419   0.370    0.480   ← worse 
+
+
+MOTE creates synthetic TypeB rows by interpolating between existing TypeB neighbours
+
+but your TypeB customers are not clearly clustered they are spread across the feature space
+synthetic rows may not represent real customer behaviour
+the model learned patterns from fake data
+that do not generalise to real test set customers
+
+also your pipeline already handles imbalance well via:
+    threshold tuning to 0.20
+    class_weight='balanced' 
+    stratified splits
+SMOTE was redundant and added noise
+
+GB + SMOTE (your result):
+F1 = 0.4188 ⛔ (worse)
+Recall = 0.37 ⛔ (much worse)
+Precision = 0.48 ✅ (slightly better)
+AUC = 0.766 ⛔ (worse)
+⚠️ What this actually means
+1. SMOTE hurt recall (this is the big issue)
+You went from:
+47% → 37% recall
+That means:
+👉 You are missing more actual TypeB customers
+
+This is usually unacceptable in marketing use cases.
+
+2. Precision improved slightly (but not enough)
+0.44 → 0.48
+
+👉 You waste slightly fewer calls
+BUT…
+
+⚠️ You miss more good leads, which is worse
+
+3. AUC dropped
+0.79 → 0.766
+
+👉 Model is less capable overall at ranking customers
+
+🧠 Why SMOTE didn’t help (important insight)
+
+This is actually expected for your dataset.
+
+Reason 1 — Tree models already handle imbalance well
+Gradient Boosting doesn’t rely on distance
+It splits based on information gain
+
+👉 SMOTE helps more with:
+
+KNN
+Logistic Regression
+
+👉 Less useful for:
+
+Random Forest
+Gradient Boosting
+Reason 2 — You already solved imbalance with threshold tuning
+
+This is the big one.
+
+You already did:
+✔ Threshold tuning → improved recall
+✔ Class weighting (likely)
+✔ Evaluation with F1 / F2
+
+👉 That’s better than SMOTE in most business cases
+
+========================cjhi squared
+
+# filter-based feature selection — chi-squared test on categorical features
+# chi2 imported in LAB10 alongside mutual_info_classif
+# chi-squared tests whether there is a statistically significant association 
+# between each categorical feature and the target variable
+# higher chi2 score = stronger association with target
+# p-value < 0.05 = statistically significant
+
+from sklearn.feature_selection import chi2
+from sklearn.preprocessing import LabelEncoder
+
+# select categorical columns
+cat_cols_chi2 = df_ts_mi.select_dtypes(include=['object']).columns.tolist()
+cat_cols_chi2 = [col for col in cat_cols_chi2 if col != 'y']
+
+# chi2 requires non-negative numerical input — encode categorical columns
+X_cat = df_ts_mi[cat_cols_chi2].apply(LabelEncoder().fit_transform)
+y_chi2 = df_ts_mi['y']
+
+# calculate chi2 scores
+chi2_scores, p_values = chi2(X_cat, y_chi2)
+
+# put results in a dataframe and sort
+chi2_DF = pd.DataFrame({
+    'chi2_score' : chi2_scores.round(2),
+    'p_value'    : p_values.round(4),
+    'significant': p_values < 0.05
+}, index=cat_cols_chi2).sort_values('chi2_score', ascending=False)
+
+print("=== Chi-Squared Test — Categorical Features ===")
+print("Higher score = stronger association with TypeB target")
+print("p-value < 0.05 = statistically significant")
+print()
+print(chi2_DF.to_string())
+
+
+# evaluate models — following LAB6 output style
+metrics = {
+    'Accuracy'     : accuracy_score,
+    'Precision'    : precision_score,
+    'Recall'       : recall_score,
+    'F1 Score'     : f1_score,
+}
+
+for name, res in results.items():
+    print(f"Evaluation metrics for {name}:")
+    for metric_name, metric_func in metrics.items():
+        score = metric_func(y_test, res['y_pred'])
+        print(f"  {metric_name}: {score:.4f}")
+    # roc_auc needs probabilities — handled separately
+    print(f"  ROC-AUC Score: {roc_auc_score(y_test, res['y_prob']):.4f}")
+    print()

@@ -24,5 +24,39 @@ en.wiktionary.org/wiki/data_mining
 > do not oputput the resultant content here, only in the .docx file which I will download for study purposes.
 > check for slides based on title as may eb a divider of sections - if come across that can use H2 for that title as a new asection title
 > bullet list the text under the headers
+> for any equations that appear on slildes give me the equations in text exactly as they appear on the slide,  so can copy them into my notes...
+> no heading should be greater than 3, including any overview, summary and reference headers
+> if there are obvious sectional headings, headers which fit under it should be 4
 
 > watched out for text boxes - as yuo ahve missed a few when boxed
+
+questions
+
+
+> do not need to respond, reply, just absorb the content and label it as week 5 Regression and SVM
+> 20 questioons multiple choice for most importsnt topics form this conent, same structure as before
+> don't put answers under questions as before... put them in a list at the end of all the questions, so I can review the answrs in context of what I chose
+
+> give the corrcet answer for questions - include the original question also, so I can have the context for which it was asked
+
+
+# threshold tuning on Gradient Boosting — best model by ROC-AUC
+# as per lecture notes, default threshold of 0.5 can be adjusted to change model sensitivity
+# lowering threshold increases recall (catches more TypeB) at cost of precision
+
+gb_probs = results['Gradient Boosting']['y_prob']
+
+# test a range of thresholds
+thresholds = [0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50]
+
+print("=== Threshold Tuning — Gradient Boosting ===")
+print(f"{'Threshold':<12} {'Precision':<12} {'Recall':<12} {'F1':<12} {'Accuracy':<12}")
+print("-" * 60)
+
+for thresh in thresholds:
+    y_pred_thresh = (gb_probs >= thresh).astype(int)
+    print(f"{thresh:<12.2f} "
+          f"{precision_score(y_test, y_pred_thresh):<12.4f} "
+          f"{recall_score(y_test, y_pred_thresh):<12.4f} "
+          f"{f1_score(y_test, y_pred_thresh):<12.4f} "
+          f"{accuracy_score(y_test, y_pred_thresh):<12.4f}")

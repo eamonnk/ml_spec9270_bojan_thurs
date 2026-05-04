@@ -1,0 +1,171 @@
+
+
+## Step 1 - Import the Data sets
+## Step 2: Data Exploration
+### 2.1 - Check Training and Query Datasets features and nakes are identical
+### 2.2 - Check data types per colum
+### 2.3 - Create profiling report
+### 2.4 - Visualise the Categorical features
+### 2.5 - Visualise the Numerical features
+### 2.6 - View Training data structure, statistics and cleanliness
+### 2.7 - Additional 'age' category analysis
+### 2.8 - Additional 'age' category analysis
+### 2.9 - Additional 'campaign' feature predictor analysis -- good
+### 2.10 - Additional 'education' feature predictor analysis -- good
+### 2.11 - Additional 'balance' feature predictor analysis
+### 2.12 - Additional 'loan' feature predictor analysis -- good
+### 2.13 - Additional 'contact' feature predictor analysis -- good
+### 2.14 - Additional 'day' feature predictor analysis
+### 2.15 - Additional 'month' feature predictor analysis
+### 2.16 - Additional 'poutcome' feature predictor analysis
+### 2.17 - Feature colinearity check
+### 2.18 - Feature Analysis Results and Next Steps Outline
+## Step 3 - Pre-processing
+### 3.1 - Summary of Feature Actions
+### 3.2 - Remove 'duration' feature
+### 3.3 - Remove duplicates from training data only
+### 3.4 - Feature Engineering - Create new feature 'contacted_previously' from 'pdays' feature
+### 3.5 - 'pdays' updated > replace '-1' values in pdays with '0' values
+### 3.6 - Binary conversion of 'default', 'housing' and 'loan' feature yes/no values to 1/0
+### 3.7 - Binary conversion of target variable 'y' TypeA/TypeB values to 0/1 - Training Data Only
+### 3.8 - log transformation of 'balance', 'campaign', 'pdays', and 'previous'
+### 3.9 - Information Gain - Filter based feature selection  - for numerical data
+### 3.10 - CHi Squared feature selection  - for categorical data
+### 3.11 - Train / Test split and pipeline
+### 3.12 - Build Pipeline and train 5 models
+### 3.13 - AUC ROC Plot and classification
+### 3.14 - Model evaluations and assessments
+## Step 4 - Model Tuning and validation
+### 4.1 - Threshold Tuning
+### 4.2 Threshold Tuning results
+### 4.3 - Cross Validation 
+### 4.4 - Cross Validation results
+### 4.5 - Address Imbalance using Oversmapling
+### 4.6 - RandomOverSampler results
+### 4.7 - Parameter tuning using GridsearchCV
+### 4.8 - Parameter tuning using GridsearchCV Results
+## Step 5 - Predict Query data set outcomes and Generate Answer file
+### 5.1 Generate Prediction on Query set using threshold value of 0.2
+### 5.2 - Query Data set prediction results
+### 5.3 - Generate answer file 
+
+
+
+
+
+### 3.9 - chi squared and cramer V predictiave value tests (numerical an categorigal independent variable predictive valeue tests)
+### 3.10 - backward / forward SFS tests (feature combination predictive value tests)
+
+
+--------------------------------------------------------------
+
+### 3.1 - Outline Summary of Feature Actions
+
+We will group the features by action t make it easier to see the groupings
+
+- Removal
+    - 'duration': delete feature
+
+
+- 'pdays': 
+    - create new feature 'contacted_previously' 
+        - dtype = 'int64'
+        - 1 = contacted previously 
+        - 0 = not contacted previously
+    - existing column
+        - change '-1' value to zero + log transform using 'log1p'  + apply RobustScalar
+        - name is same + dtype remains 'int64'
+
+
+- Scale
+    - 'age': apply RobustScalar + dtype remains as 'int64'
+    - 'balance': apply RobustScalar + dtype remains as 'int64'
+    - 'day': apply RobustScalar + dtype remains as 'int64'
+
+- Log Transform then scale
+    - 'campaign': log transform using 'log1p' + apply RobustScalar + dtype remains as 'int64'
+    - 'previous': log transform using 'log1p' + apply RobustScalar + dtype remains as 'int64'
+
+- One-Hot encoding
+    - 'job': one-hot encoding for all 12 categories + dtype changes to 'int64'     
+    - 'marital': one-hot encoding for 3 values 'married', 'single' and 'divorced' + dtype changes to 'int64'        
+    - 'education': one-hot encoding for 4 values 'unknown', 'primary', 'secondary' and 'tertiary' + dtype changes to 'int64' 
+    - 'contact': one-hot encoding for 3 values 'cellular', 'unknown' and 'telephone' + dtype changes to 'int64'  
+    - 'month':  one-hot encoding for all 12 months + dtype changes to 'int64'                    
+    - 'poutcome': one-hot encoding for 4 values 'unknown', 'failure', 'other' and 'success' + dtype changes to 'int64'    
+
+- Convert text to Binary Numeric categorical
+    - 'default': change 'yes' to 1 and 'no' to 0 + dtype changes to 'int64'         
+    - 'housing': change 'yes' to 1 and 'no' to 0 + dtype changes to 'int64'       
+    - 'loan': change 'yes' to 1 and 'no' to 0 + dtype changes to 'int64'  
+
+
+
+- Training data only change
+
+
+
+=== write up
+
+Info gain
+=== Information Gain (Mutual Information) — Numerical Features ===
+Higher score = more predictive signal for TypeB outcome
+
+                      I-Gain
+pdays                 0.0228
+balance               0.0196
+age                   0.0161
+housing               0.0149
+previous              0.0129
+contacted_previously  0.0087
+day                   0.0067
+loan                  0.0064
+campaign              0.0032
+default               0.0000
+
+
+
+pdays highest I-Gain (0.0228) — strongest numerical predictor ✓
+balance second (0.0196) ✓
+default = 0.0000 — zero signal individually ✓
+Matches your context summary exactly ✓
+
+Worth noting in your write-up:
+
+default has zero MI but was selected by SFS — shows why wrapper methods complement filter methods
+pdays high here but not selected by SFS — zero inflation hurts distance-based KNN calculations
+contacted_previously engineered feature shows signal (0.0087) — confirms the feature engineering was worthwhile
+
+== feature selection  chi squared ====
+contact has highest chi2 score (796.67) but this is inflated by large sample volumes — this is exactly why Cramér's V would be useful to normalise it
+poutcome and education significant ✓
+job not significant (p=0.2406) — consistent with your context summary ✓
+All match your context summary figures exactly ✓
+
+Worth a brief note in your markdown for this section:
+"Note: the chi-squared score for contact is inflated by the large number of observations in that category. A normalised measure such as Cramér's V would give a more reliable ranking across features — this is noted as a limitation of chi-squared alone but is outside the scope of this analysis."
+
+
+
+==== models ======
+### 3.12 — Build Pipeline and Train 5 Models
+
+We train five classification models, selected to cover a range of different algorithmic approaches:
+
+- **Logistic Regression** — a linear model, simple and interpretable baseline. Sensitive to feature scaling and skewness, which we have addressed in preprocessing.
+- **Random Forest** — an ensemble of decision trees using bagging. Robust to outliers and skewness, handles class imbalance well with `class_weight='balanced'`.
+- **Gradient Boosting** — a boosting ensemble that builds trees sequentially, each correcting errors of the previous. Generally strong performance on tabular data.
+- **K-Nearest Neighbours (KNN)** — a distance-based model. Sensitive to feature scaling which is handled by RobustScaler in the pipeline.
+- **Naive Bayes (Gaussian)** — a probabilistic model based on Bayes theorem, assumes features are normally distributed and independent. Fast and simple, useful as a baseline comparison.
+
+All models are wrapped in a sklearn `Pipeline` with the preprocessor, ensuring that `RobustScaler` and `OneHotEncoder` are fitted on `X_train` only and applied to `X_test` and the query set without refitting — preventing data leakage.
+
+Given the class imbalance (88% TypeA / 12% TypeB), `class_weight='balanced'` is applied where supported. We use **ROC-AUC** as the primary evaluation metric as it is more informative than accuracy for imbalanced datasets.
+
+
+Objective:
+Create a machine learning model which will predict a 'TypeB' outcome in a query dataset, based of a training data set.
+
+NOTE: this file takes approximately X mins to run
+Also, the files 'training.txt and 'query.txt' must be in the same folder as this notebook when this file is run.
+

@@ -1,0 +1,60 @@
+am
+Amany Elkelany(Offline)
+7:37 PM
+
+Hi, I am here in case you need any help or have any questions. Just let me know and I will help you.
+be
+Bernardo Vieira de Castro
+7:38 PM
+
+hi amany this is unreated to this call but can I do knn imputation of categorical data?
+be
+Bernardo Vieira de Castro
+7:38 PM
+
+in the pre-processing stage, if i have a feature education that has 1,2,3 and na. can I turn the nas into one of the 3 categories?
+am
+Amany Elkelany(Offline)
+7:39 PM
+
+You mean for the assignment or in general?
+be
+Bernardo Vieira de Castro
+7:40 PM
+
+both i guess i was asking because i was playing around with the assignment
+am
+Amany Elkelany(Offline)
+7:41 PM
+
+In general yes, you can use KNN imputation for categorical data. For assignment, I will check with Bojan and let you know
+be
+Bernardo Vieira de Castro
+7:41 PM
+
+but i need to scale everything first right?
+am
+Amany Elkelany(Offline)
+7:42 PM
+
+Yes
+be
+Bernardo Vieira de Castro
+7:42 PM
+
+thank you
+vi
+Victor Hugo Cavichiolli Prado
+7:44 PM
+
+Hey Amany, do you have the solution for week 9, I cannot find it on brightspace
+am
+Amany Elkelany(Offline)
+7:45 PM
+
+Bojan will upload it.
+vi
+Victor Hugo Cavichiolli Prado
+7:45 PM
+
+thanks
