@@ -169,3 +169,7 @@ Create a machine learning model which will predict a 'TypeB' outcome in a query 
 NOTE: this file takes approximately X mins to run
 Also, the files 'training.txt and 'query.txt' must be in the same folder as this notebook when this file is run.
 
+
+- 'pdays' was identified as the strongest numerical predictor via Information Gain (score = 0.0228)
+- 'poutcome' was identified as the strongest categorical predictor via Chi-Squared and EDA analysis — customers who had a successful outcome in a previous campaign converted at 66.78% TypeB rate, the highest of any feature category
+- Both relate to previous customer contact history

@@ -195,3 +195,180 @@ When rerun with optimal k values identified from the performance plots (forward 
 
 This finding illustrates a key advantage of wrapper methods over filter methods — they can identify features that are useful in combination even when individually uninformative."
 
+==== chi squareed and cramer V ======
+
+"Filter-based feature selection was applied separately 
+to numerical and categorical features using appropriate 
+statistical measures for each feature type.
+
+Numerical features were assessed using Mutual Information 
+(I-Gain), which measures non-linear statistical dependence 
+between each feature and the target variable. pdays 
+(I-Gain=0.023) and balance (I-Gain=0.020) were identified 
+as the strongest numerical predictors. The engineered 
+feature contacted_previously (I-Gain=0.009) demonstrated 
+meaningful predictive signal, validating the feature 
+engineering decision. default scored zero (I-Gain=0.000) 
+confirming its heavily imbalanced distribution (1.8% yes) 
+carries no independent predictive signal.
+
+Categorical features were assessed using chi-square testing 
+for statistical significance and Cramers V for association 
+strength. Chi-square confirmed all categorical features as 
+statistically significant at p<0.05 except job (p=0.241). 
+However chi-square scores are sensitive to sample size — 
+contact scored chi2=796.67 due to large volume differences 
+between cellular (64.7%) and telephone (6.4%) categories, 
+artificially inflating its ranking.
+
+Cramers V, which normalises chi-square by sample size, 
+provides a more reliable association ranking. poutcome 
+(V=0.319) was correctly identified as the strongest 
+categorical predictor, consistent with EDA findings 
+showing 66.78% TypeB conversion for previously successful 
+customers. month (V=0.268) ranked second confirming strong 
+seasonal signal. contact dropped to third (V=0.155) 
+reflecting genuine but less dominant association.
+
+These filter-based results are consistent with EDA 
+findings throughout section 2 and validate the 
+preprocessing decisions made in steps 3.2-3.8. 
+No features were removed as a result of this analysis — 
+all features were retained for the main model pipeline."
+
+
+# verify changes
+print("==== verify log1p transforms ====")
+for col in log_cols:
+    print(f"\n{col}:")
+    print(f"  training — min: {df_ts_6[col].min():.4f}  max: {df_ts_6[col].max():.4f}  mean: {df_ts_6[col].mean():.4f}")
+    print(f"  query    — min: {df_qry_6[col].min():.4f}  max: {df_qry_6[col].max():.4f}  mean: {df_qry_6[col].mean():.4f}")
+    print(f"  dtype training : {df_ts_6[col].dtype}  /  dtype query : {df_qry_6[col].dtype}")
+
+print(f"\ntraining shape : {df_ts_6.shape}")
+print(f"query shape    : {df_qry_6.shape}")
+
+
+# Filter-based feature selection — Information Gain (Mutual Information)
+# applied to numerical features only — MI requires numerical input
+# approach taken from LAB10 — mutual_info_classif returns I-Gain score per feature
+# higher score = more predictive signal for TypeB outcome
+# score of 0 = no predictive signal
+
+from sklearn.feature_selection import mutual_info_classif
+
+# define numerical features for MI calculation
+# using df_ts_6 — post log1p transform, pre pipeline scaling
+num_cols_mi = ['age', 'balance', 'day', 'campaign', 
+               'pdays', 'previous', 'contacted_previously',
+               'default', 'housing', 'loan']
+
+X_mi = df_ts_6[num_cols_mi]
+y_mi = df_ts_6['y']
+
+# calculate information gain scores
+i_scores = mutual_info_classif(X_mi, y_mi, random_state=42)
+
+# put I-Gain scores in a dataframe and sort — following LAB10 approach
+FS_DF = pd.DataFrame(i_scores, index=num_cols_mi, columns=['I-Gain'])
+FS_DF = FS_DF.sort_values('I-Gain', ascending=False).round(4)
+
+print("=== Information Gain (Mutual Information) — Numerical Features ===")
+print("Higher score = more predictive signal for TypeB outcome")
+print()
+print(FS_DF.to_string())
+
+
+X_cat  = df_ts_mi[categorical_cols_chi].apply(LabelEncoder().fit_transform)
+y_chi2 = df_ts_mi['y']
+
+
+
+# preprocessor — RobustScaler on numerical, OneHotEncoder on categorical
+# fitted on X_train only — prevents data leakage
+preprocessor = ColumnTransformer([
+    ('num', RobustScaler(), num_cols_pre_split),
+    ('cat', OneHotEncoder(handle_unknown='ignore', drop='first'), cat_cols_pre_split)
+])
+
+# define 5 models — following LAB6 dictionary approach
+# class_weight='balanced' adjusts weights inversely proportional to class frequency — handles 88/12 imbalance
+# class_weight not supported by GradientBoosting, KNN and GaussianNB — imbalance handled via threshold tuning
+# n_estimators=200 — number of trees, above sklearn default of 100 for more stable predictions
+models = {
+    'Logistic Regression' : LogisticRegression(class_weight='balanced', max_iter=500, random_state=42),
+    'Random Forest'       : RandomForestClassifier(class_weight='balanced', n_estimators=200, random_state=42),
+    'Gradient Boosting'   : GradientBoostingClassifier(n_estimators=200, random_state=42),
+    'KNN'                 : KNeighborsClassifier(n_neighbors=5),
+    'Naive Bayes'         : GaussianNB()
+}
+
+# store results for comparison
+results = {}
+
+# train and evaluate each model — following LAB6 approach
+for name, model in models.items():
+
+    # build pipeline — preprocessor + classifier — following LAB1
+    pipeline = Pipeline(steps=[
+        ('preprocessor', preprocessor),
+        ('classifier', model)
+    ])
+
+    # fit pipeline on training data only
+    pipeline.fit(X_train, y_train)
+
+    # predict on test data
+    y_pred = pipeline.predict(X_test)
+    y_prob = pipeline.predict_proba(X_test)[:, 1]
+
+    # calculate and store results
+    results[name] = {
+        'pipeline' : pipeline,
+        'accuracy' : accuracy_score(y_test, y_pred),
+        'precision': precision_score(y_test, y_pred),
+        'recall'   : recall_score(y_test, y_pred),
+        'f1'       : f1_score(y_test, y_pred),
+        'roc_auc'  : roc_auc_score(y_test, y_prob),
+        'y_pred'   : y_pred,
+        'y_prob'   : y_prob
+    }
+
+# print evaluation metrics — following LAB6 output style
+# roc_auc calculated using predict_proba probabilities rather than predict — more correct for imbalanced data
+metrics = {
+    'Accuracy'     : 'accuracy',
+    'Precision'    : 'precision',
+    'Recall'       : 'recall',
+    'F1 Score'     : 'f1',
+    'ROC-AUC Score': 'roc_auc'
+}
+
+for name, res in results.items():
+    print(f"Evaluation metrics for {name}:")
+    for metric_name, metric_key in metrics.items():
+        print(f"  {metric_name}: {res[metric_key]:.4f}")
+    print()
+
+
+GB best ROC-AUC = 0.7960 (holdout 0.7922)
+RF second = 0.7760 (holdout 0.7778)
+LR = 0.7705 (holdout 0.7677)
+NB = 0.7316 (holdout 0.7277)
+KNN weakest = 0.6874 (holdout 0.6864)
+
+
+
+# view all combinations ranked by score — following LAB7 approach
+scores_df = pd.DataFrame(grid_search.cv_results_)
+scores_df = scores_df.sort_values(by=['rank_test_score']).reset_index(drop=True)
+print(scores_df[['rank_test_score', 'mean_test_score', 
+                  'param_classifier__n_estimators',
+                  'param_classifier__learning_rate',
+                  'param_classifier__max_depth']].to_string(index=False))
+
+
+pd.Series(q_pred_labels).to_csv(file_name, index=False, header=False)
+
+submission = pd.DataFrame({'query': range(1, len(q_pred_labels) + 1),'prediction': q_pred_labels)})
+submission.to_csv(file_name, index=False, header=False)
