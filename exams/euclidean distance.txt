@@ -1,0 +1,87 @@
+id1) d = sqrt (24000-180000) square
+
+60000 squared
+=3600000000 sqr = 60K
+
+id2 =120000) d = sqrt (24000-120000) square
+
+120000 squared
+=3600000000 sqr = 60K#
+60000 squared
+=120000
+
+id3 =360000) d = sqrt (240000-360000) square
+
+120000 squared
+=1.44 x 10^10 sqr = 120000
+=120000
+
+normalise 101
+x = 120000 / 480000 - 120000 = 
+
+120000/360000 = 0.33
+featur 2)
+max =  8
+min = 3
+
+x = 4-3 / 8 - 3 = 1 / 5 = .2
+
+============== question==================
+| ID | Age | Monthly Spend (€) | Visits per Month | Premium |
+| -- | --- | ----------------- | ---------------- | ------- |
+- | 1  | 22  | 30                | 5                | No      |
+- | 2  | 35  | 120               | 15               | Yes     |
+- | 3  | 28  | 60                | 8                | No      |
+- | 4  | 45  | 150               | 25               | Yes     |
+| 5  | 52  | 180               | 12               | Yes     |
+
+queryh  = age 30 / monthly spedn = 70 / visits = 10  /premium = ?
+
+
+calculate euclidean diatsnxe on 3 nearest neoghbours, using age as feature? or using nearest in each feature?
+age = 30 
+
+1st NN  = age = 28
+
+sqrt ((30-28) squared + (70-60) squared + (10-8)squared
+= sqrt 4 + 100 + 4 = 108 sqrt  = 10.39
+
+2nd NN  = age = 35
+
+sqrt ((30-35) squared + (70-120) squared + (10-15)squared
+= sqrt 25 + 2500 + 25 = 3650 sqrt  = 50.49
+
+3rd NN  = age = 22
+
+sqrt ((30-22) squared + (70-30) squared + (10-5)squared
+= sqrt 64 + 1600 + 25 = 1689 sqrt  = 41.09
+
+4th NN  = age = 45
+
+sqrt ((30-45) squared + (70-150) squared + (10-25)squared
+= sqrt 225 + 6400 + 225 = 6850 sqrt  = 82.76
+
+
+5th NN  = age = 52
+
+sqrt ((30-52) squared + (70-180) squared + (10-12)squared
+= sqrt 484 + 12100 + 4 = 12588 sqrt  = 112.19
+
+3 nearest neighbours are age 28/35/45 > IDs = 2, 3, and 4
+2 yes and 2 No >> Majority class determines >> query  = Yes
+
+
+why normlaise?
+uses euclidean distances, raneg of numnbers varies 100s/1000s to single digits, and large numebrs dominate small numbers whihch wil tn ahve any imapct . must ormalsie to  allow equal poredictive avlue
+
+small vs large K
+small k  = 1 = overfitting>>> it will fit to itself as nearest neighbout / sensitive to noise (learns noise or specific patterns)/ irreglar boundaries / high variance / excellent yrtaing performance
+
+large k = underfitting is possible  / less sensitive to noise / smoother prredictuis / fails to capture patterns / high bias!
+
+Q lazy learner -0 no tringin phase / al traingn data put into memory / don't need to retrain if new data / 
+
+curse fo dimensionality >> increseein diensions >> less data density, increasing ly sparse >> reduces the effectiveness of nearest neighbour...reduce predictive performance...
+dim red / feature selection / feature transformatino
+
+Manhatten . doesn't square the value .. so less compute demand, more suited to big datasets wiith high numebr f dimensions /less sensitiev to outliers...

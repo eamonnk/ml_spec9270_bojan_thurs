@@ -1,0 +1,74 @@
+(a= actual  / p = predicted)
+TP = Act Pos | Pred Pos 
+TN = Act Neg | Pred Neg
+FP = Act Neg | Pred Pos >> Type 1 error - need for stock market  - can't recomend wrong stocks... cost money / SPAM don't mind  (tight) / Netflix
+FN = Act Pos | Pred Neg  >> Tyep 2 error - need for medical disgnosos / can't miss a positive diagnosos -  / Credit Card fraud / etflix want small few which are relevent
+
+>> Precision  = TP / TP + FP 
+of all that were predicted positive how many were actually positive 
+/  wantto catch everthing - propotion of retrieved resutls that ar relevent? 
+of all I said was spam - how much was spam? was what you got what yuo wanted/relavent?
+ / StockMarket
+ / Netflix
+/ Spam
+
+>> Recall = TP / TP + FN  (Sensitivity)
+
+of all that actually positive how many did I correctly find ? how manyhh FNs? 
+of all of the actual spam - how much did I catch? i.e.e did you get everything? 
+ / Medical!!
+ / Credit Card fraud
+
+Specificity True Negative Rate = (TN  / TN + FP)
+
+Accuracy = TP + TN / (TP + TN + FP + FN)
+
+>> F1 - harmonic mean of recal and precision
+
+confusion matrix
+		Pred Pos	Pred Neg
+Act posiivte	TP		FN
+Act negative	FP		TN
+
+ROC Curve
+X = FP (Fale Positive rate (FPR - FP/FP+TN)
+Y = TP (True positive rate TP/TP +FN = same as recall)
+
+Trade off between
+
+====== 
+
+Table 1 — 20 instances (false = ham, true = spam)
+
+| ID |Actual  | Prediction | label
+|----|--------|------------|
+| 1  | false  | false      | TN
+| 2  | true   | true       | TP
+| 3  | false  | false      | TN
+| 4  | true   | true       | TP
+| 5  | false  | false      | TN
+| 6  | false  | false      | TN
+| 7  | true   | false      | FN
+| 8  | true   | true       | TP
+| 9  | true   | true       | TP
+| 10 | true   | true       | TP
+| 11 | false  | false      | TN
+| 12 | false  | false      | TN
+| 13 | false  | false      | TN
+| 14 | false  | false      | TN
+| 15 | true   | true       | TP
+| 16 | false  | false      | TN
+| 17 | true   | true       | TP
+| 18 | true   | true       | TP
+| 19 | false  | false      | TN
+| 20 | false  | false      | TN
+
+TP = 8/20 = 0.4
+TN = 11/20 = 0.55
+FP = 0/20 = 0
+FN = 1/20 = 0.05
+
+Accuracy = TP + TN / TP + TN + FP + FN = 0.4 + 0.55 / (04 +.55 + 0 + 0.05) = 0.95/ 1 = 0.95
+Precision = (TP / TP+FP) = 0.4 / 0.4 + 0 = 1
+Recall = (TP / TP + FN) = 0.4 / 0.4 +0.5 = .88
+F1 - 2 x (precision x recall) / precision + recall = 2(1 x .88) / 1.88 = 1.76 /  = 0.93

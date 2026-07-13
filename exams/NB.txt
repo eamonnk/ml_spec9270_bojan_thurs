@@ -1,0 +1,171 @@
+1st classify the pronlem
+
+
+step 2 . calculate prior probabilities
+
+yes = 4/10 = 0.4
+no = 6/10 = 0.6 
+
+step 3.calculate likihood probabilities for Puchased  = YES
+
+scond hand given purchase  = yes
+2nd hand  = True >> Purchased = yes = 2/4
+2nd hand  = False >> Purchased  = yes = 2/4
+
+GENRE given purchae  = yes
+genre = romance > purchase  = yes = 2/4
+genre = sciendce >. purchased  = yes = 1/4
+genere = literature >> urchase  = yes = 1/4
+
+COST give Purchase  = yes
+Cost EXpensive > purchase  = yes = 1/4
+Costg checap > purchase  = yes = 2/4 
+Costg rreasonable >purchase  = yes = 1/4
+
+step 3.calculate likihood probabilities for Puchased  = NO
+
+scond hand given purchase  = NO
+2nd hand  = True >> Purchased = yes = 3/6
+2nd hand  = False >> Purchased  = yes = 3/6
+
+GENRE given purchae  = NO
+genre = romance > purchase  = yes = 2/6
+genre = sciendce >. purchased  = yes = 3/6
+genere = literature >> urchase  = yes = 1/6
+
+COST give Purchase  = NO
+Cost Expensive > purchase  = yes = 1/6
+Costg checap > purchase  = yes = 3/6
+Costg rreasonable >purchase  = yes = 2/6
+
+====--- Step 4. apply laplace smoothing----======
+
+second hand -# cats = 2 >>
+2nd hand  = True >> Purchased = yes = 2/4 >>> laplace = 3/6
+2nd hand  = False >> Purchased  = yes = 2/4 >> laplace =  3/6
+
+scond hand given purchase  = NO
+2nd hand  = True >> Purchased = yes = 3/6 >> laplace =  4/8
+2nd hand  = False >> Purchased  = yes = 3/6 >>laplace = 4/8
+
+-----
+
+GENRE given purchae  = yes
+genre = romance > purchase  = yes = 2/4 >> laplace = 3/7
+genre = sciendce >. purchased  = yes = 1/4 >> laplace = 2/7
+genere = literature >> urchase  = yes = 1/4 >> laplace = 2/7
+
+
+GENRE given purchae  = NO
+genre = romance > purchase  = yes = 2/6 >> laplace = 3/9
+genre = sciendce >. purchased  = yes = 3/6 >> laplace = 4/9
+genere = literature >> urchase  = yes = 1/6 >> laplace = 2/9
+
+---
+
+COST give Purchase  = yes
+Cost Expensive > purchase  = yes = 1/4 >> laplace = 2/7
+Costg checap > purchase  = yes = 2/4  >> laplace = 3 /7
+Costg rreasonable > purchase  = yes = 1/4 >> laplace = 2 /7
+
+
+COST give Purchase  = NO
+Cost Expensive > purchase  = yes = 1/6 >> laplace = 2/9
+Costg checap > purchase  = yes = 3/6 >> laplace = 4/9
+Costg rreasonable >purchase  = yes = 2/6 >> laplace = 3/9 
+
+
+-- calculate probabilities---
+
+Purchase  = YES > 2nd hand  = False >> Purchased  = yes = 2/4 >> laplace =  3/6  + genere = literature >> urchase  = yes = 1/4 >> laplace = 2/7 +C ost Expensive > purchase  = yes = 1/4 >> laplace = 2/7
+= 0.4 x 0.5 x 0.285 x 0.285 = 0.0162
+
+
+Purchases = no > 2nd hand  = False >> Purchased  = yes = 3/6 >>laplace = 4/8 + genere = literature >> urchase  = yes = 1/6 >> laplace = 2/9 + Cost Expensive > purchase  = yes = 1/6 >> laplace = 2/9
+= 0.6 x 0.5 x 0.222 x0.222 = 0.0145
+
+--- normalise to get a percentage
+0.0162 + 0.0145 = 0.0307
+prob % YES = 0.527
+prob% NO = 0.47  
+
+
+
+=============== chatgpt =============
+
+
+| ID | Contains “Free” | Unknown Sender | Spam |
+| -- | --------------- | -------------- | ---- |
+| 1  | Yes             | Yes            | Yes  |
+| 2  | Yes             | No             | Yes  |
+| 3  | No              | Yes            | No   |
+| 4  | Yes             | Yes            | Yes  |
+| 5  | No              | No             | No   |
+| 6  | Yes             | No             | No   |
+
+1. Define the problem
+# = 6
+2. calculate prior probabilities
+
+Yes = 3/6 = 0.5
+No = 3/6 = 0.5
+
+3. Calcualte Likelihood probabilities
+
+Spam  = YES
+
+P(Free = Yes | Spam = Yes) = 3/3 = 1 >>
+P(Free = No | Spam = Yes) = 0/3 = 0
+
+P(Unknown sender = Yes | Spam  = Yes) = 2/3 = 0.66
+P(Unknown sender = No | Spam  = Yes) = 1/3 = .33
+
+SPAM  - NO
+
+P(Free = Yes | Spam = No) = 1/3 = 0.33
+P(Free = No | Spam = No) = 2/3 = 0.66
+
+P(Unknown sender = Yes | Spam  = No) = 1/3 = 0.33
+P(Unknown sender = No | Spam  = No) = 2/3 = 0.66
+
+4. apply laplace 
+
+(number of categories = 2)
+P(Free = Yes | Spam = Yes) = 3/3 = 1 >> appy laplace  =  4/5 = 0.8
+P(Free = No | Spam = Yes) = 0/3 = 0 >> appy laplace  = 1/5  = 0.2
+
+P(Unknown sender = Yes | Spam  = Yes) = 2/3 = 0.66 >> appy laplace  =  3/5 = 0.6
+P(Unknown sender = No | Spam  = Yes) = 1/3 = .33 >> appy laplace  =  2/5 = 0.4
+
+SPAM  - NO>
+(number of categories = 2)
+P(Free = Yes | Spam = No) = 1/3 = 0.33 >> appy laplace  =  2/5 = 0.4
+P(Free = No | Spam = No) = 2/3 = 0.66 >> appy laplace  =  3/5 = 0.6
+
+P(Unknown sender = Yes | Spam  = No) = 1/3 = 0.33 >> appy laplace  =  2/5 = 0.4
+P(Unknown sender = No | Spam  = No) = 2/3 = 0.66 >> appy laplace  =  3/5 = 0.6
+
+
+. Create Probabillities
+
+SPAM = YES
+
+Prior = Yes = 0.5
+P(Free  = Yes| Spam = Yes)  = 0.8
+P(Unkown = Yes | Spam = Yes) = 0.6
+Prob = posterior 0.24 >> posterior prob of spam given free = yes and unknown sender - yes
+
+SPAM = NO
+
+Prior = No = 0.5
+P(Free  = Yes| Spam = No)  = 0.4
+P(Unkown = Yes | Spam = No) = 0.4 
+posterior prob = 0.5 x 0.4 x 0.4  = 0.08 >> posterior prob of no spam given free = yes and unknown sender - yes
+
+apply Map a psteriooir  - >> arg max >> 0.24
+
+ - Normalise
+add 2 probs >> 0.08 + 0.24 = 0.32
+/ botj probsby that number = 
+0.08/0.32 = .25  = 25%
+0.24/0.32 - 0.75 = 75%

@@ -1,0 +1,133 @@
+level 1 = 5/8 = 0.625 > log 2 = -0.678
+level 2 = 2/8 = 0.25 > log 2 = -2
+level 3 = 1/8 = 0.125 > log 2 = -3
+
+(0.625 x (-0.678)) + (0.25 x (-2)) + (0.125 x (-3))
+-0.423 + (-0.5) + (-0.375) = -1.298
+
+INformati gain  = entropy before split (original) minus entropu after...
+IG (d,D) = H(D) - (rem d,D)
+rem (d,D) = sum k i (Di)D x H(D)
+
+If IG  = 0 >> no information gain >> no point in splitting on that data
+if IF  = higer value >> that is best feature to split on.. no set upper fixed limit
+the bigger the IG the betetr the split
+
+ID£ uses IG to decide split >> if large nujber of unique values get lotas of leaf nodes with 
+C4.5 uses IG Ratio ro decide split >> 
+
+============ Entropy + IG ==================
+
+| ID | Age Group | Owns House | Purchased |
+| -- | --------- | ---------- | --------- |
+| 1  | Young     | Yes        | Yes       |
+| 2  | Young     | No         | No        |
+| 3  | Middle    | Yes        | Yes       |
+| 4  | Old       | Yes        | Yes       |
+| 5  | Old       | No         | No        |
+| 6  | Middle    | No         | No        |
+
+Prior Prob = 
+6 instances
+yes = 3/6 = 0.5
+No = 3/6 = 0.5
+
+Yes Entropuy = - sum 3/6 x log 2 (3/6) = 
+= - (0.5 x -1) = 0.5
+
+NO Entropy same as above 
+add the two 
+0.5 + 0.5 > get total entropy  = 1
+Bnatry classification max entropy  = 1
+100 / 0 entropy  = 0  nextq
+
+q2 . --Cacluate the IG for Owns house---
+
+IG  = (original entropy - entropy after split)
+
+rem (d,D) = sum di/dall x H(di)
+Owns House = Yes
+3/6 x 1 = 0.5 
+IG = 0.5
+
+Owns House = No
+same as above as No = 3/6
+if split on Yes > IG  = 0.5
+if split on No  > IG  = 0.5
+
+weighted entropyh after split...!
+3/6 (0) + 3/6(0)
+rem (d,D) = 1 - 0 = IG owns House  = 1
+after splitting no uncertainy remains . #max IG
+higher Ig the better the split . thsi si the max available there i no beter split available.
+
+ID3 induction vias >> assume good classification is high short tree with high IG splits near the root >> bias towards data with many unqieu values
+end upw ith tiny pure sets, overfitting ... many leaf nodes with single exaple.. 
+Gain Ratin  / IG / split informayion
+based on likelhood of incorrcet classification 1 - sum pi squared
+
+
+==== IG  / DTs === 
+continuos data
+
+| ID | Salary | Purchased |
+| -- | -----: | --------- |
+| 1  |     20 | No        |
+| 2  |     30 | No        |
+| 3  |     40 | Yes       |
+| 4  |     50 | Yes       |
+| 5  |     60 | Yes       |
+
+1. sort ascending + define the thresholds
+
+| Between   | Threshold |
+| --------- | --------- |
+| 20 and 30 | 25        |
+| 30 and 40 | 35        |
+| 40 and 50 | 45        |
+| 50 and 60 | 55        |
+
+steps > splti on threshold
+2. calcualte entropy of each group
+3. add weighted entripy afetr split
+4. calculate Ig
+5. compare agaist other thresholds..
+highest IG is selected
+
+keft side of 35 >> entropy  = 0
+right side of 35 entropuo  = 0
+weighted entropy after split
+2/5(0) +3/5(0) = 0
+prginal entropy 3/5 + 2/5 = 
+3/5 en = sum 3/5x Logs 3/5 = 0.6 x -0.7 = -0.42
+2/5 ent = sum 0.4 x (-1.32) = -0.528 
+-0.42 + -0.528  = 0.948
+
+==============================
+
+Exam 
+Here's your table:
+
+| Instance | Weather | Wind | Humidity | Temperature | Play Outside |
+|----------|---------|------|----------|-------------|--------------|
+| 1 	|Sunny 		|Weak 	|Low 	|Hot 		|Yes |
+| 2 	|Sunny 		|Strong	|High 	|Hot 		|No |
+| 3	 |Rainy 	|Weak 	|High 	|Cool		 |Yes |
+| 4 	|Rainy 		|Strong	|High	|Cool		 |No |
+| 5	 |Sunny 	|Weak	 |High 	|Cool		 |Yes |
+| 6	 |Rainy 	|Weak 	|Low 	|Hot		 |Yes |
+| 7	 |Sunny 	|Strong	|Low 	|Cool		|Yes |
+| 8	 |Rainy	 	|Strong	|Low	|Hot 		|No |
+| 9	 |Sunny		 |Weak 	|Low	|Cool		|Yes |
+| 10 	|Rainy		|Strong |High 	|Hot		 |No |
+
+
+calculate entropy
+ent = - sum p x long 2 (p)
+6/10 x log 2(6/10) = 0.6 x 0.737 =  0.4422
+4/10 x log 2 (4/10) = 1.3219 x 0.4= 0.52876
+ 0.4422 + 0.52876 =0.97096
+ent = 
+
+
+calculate IG = 

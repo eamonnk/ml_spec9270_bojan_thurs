@@ -1,0 +1,413 @@
+Q 1(a)
+
+Explain what is meant by a model being consistent with the training data. (4 marks)
+Explain when a model might not be consistent with the training data.
+
+answer
+
+ANSWER
+A model is consistent with the tarining data when it correctly classifies or predicts the label of every instance in the training dataset ie. i.e. agrees with all the training instances), there is 0% traing error.
+
+a model may not be consistent when the data contains noise or conflicting examples, or when the model is too simple to fully fit the training data(underfitting)
+
+Q1(b) Describe two causes of overfitting in supervised machine learning.
+
+1) using wrappers for features selection when the number of traing examples is insufficient
+
+2) A model may overfit when it is too complex and fits the training data too closely, including noise or mislabeled examples. This reduces its ability to generalise to unseen data.
+
+3) In KNN, using a very small value of K (such as K=1) can cause overfitting because predictions depend on very few neighbours, making the model highly sensitive to noise and individual training instances.
+
+4) Decision trees with too many partitions or excessive depth may overfit by memorising small groups of training examples instead of learning general patterns.
+
+
+Q1 (c) Data leakage can give over-optimistic model performance. Explain why and (4 marks)
+discuss what is necessary to avoid data leakage.
+
+Data leakage involves the use of test data in the training of the model. as such when a model tests is predictions on the test data it already
+ knows the answer, thus providing over optimistic results, The result is an unrealistic estimate of generalisation accuracy. The model gains access to information it would not normally have when making predictions on unseen data, leading to over-optimistic performance results
+
+Data leakage can also occur in preprocessing steps such as normalisation, imputation, or feature selection if test data is included when fitting these transformations. To avoid this, all preprocessing must be fitted on training data only and then applied to test data.
+
+To avoid data leakage, the training and test datasets must remain completely separate. Any preprocessing steps such as scaling, encoding, imputation, or feature selection should be fitted only on the training data and then applied to the test data afterwards
+
+
+Q1 (d) When decision tree pruning results in the removal of a sub-tree with the root of the sub-tree becoming a leaf node, what is the class label associated with this new leaf node? (4 marks)
+
+When a subtree is pruned, its root becomes a leaf node labelled with the majority class of the training instances that reach that node. For example, if 70% of instances at that node belong to class "Yes", the leaf is labelled "Yes". Pruning is done to reduce overfitting — the removed subtree was making overly specific splits that fit training noise rather than genuine patterns, reducing generalisation ability
+
+Q1 (e) Is the following statement true or false? Explain your answer. “A k-Nearest Neighbour classifier will always have perfect accuracy if the training data is used for testing”
+(4 marks)
+#
+KNN builds no model at training time — it simply stores instances and measures distance at query time. If training data is used for testing, each instance would find itself as the nearest neighbour (distance = 0), so the statement could be true. However, with k > 1, other neighbours with different labels could affect the majority vote, making it false, 
+
+Q1 (f) In error based learning, explain what an error or loss function is and give an example.(4 marks)
+
+An error or loss function measures the difference between a model’s predictions and the actual values in the training data. It provides a numerical value representing how well or poorly the model is performing.
+
+An example is Sum of Squared Errors (SSE), also known as L2 loss, commonly used in linear regression. The model attempts to minimise this error during training to improve prediction accuracy. Other exaples include Mean absolute Error (MAE), and entropy loss.
+MAE = avg of (actual - predicted) / diff of each pred and avg value /  (easy to interpret) /abslute  => ignores the sign...
+
+MSE = avg of (actual - predicted)^2 / same  btu squares before avaerging / L2 Loss / big errors are penalised more / herder to interpret
+
+RMSE = Root Mean Squared Error (squae root of MSE) / bring unit back to mormal - still penalises big errors but more interpretable / most comomonly used...
+
+/RMSE/MAE
+
+
+g) A linear regression model to predict drug dosage (in mg) has returned feature weights of 0.1 and 0.03 for features weight and height respectively along with an intercept of -4.3. What will the model predict for a 60kg and 165cm person? (4 marks)
+
+w[0] = b = intercept
+
+linear regresion with two features => w[0] = w[1] + w[2] + b
+w[0]= (0.1)(60) + (0.03)(165) + (-4.3)
+w[0] = (6 + 4.95) - 4.3
+w[0] = 10.95 -4.3
+w[0] = 6.65 mg 
+6.65 mg is what srcommended for a person 165 cm tall and 60 kg in weight
+
+simple linear regression - 1 feature  = y=mx +b  where b = intercept / m  = slooe / (slope-intercept form from simple regression) or Mw[d] = w[0] + w[1] x d[1]
+w[0] = intercept and w[1] effectivly the slope as onyl one feature and it determiens the slope
+
+(multi variate linear regression equation - multiple features)
+Mx(d) = w[0] + w[1].d[1] + w[2].d[2] + ... etc 
+w[0] = intercept w[1] = weight in multivariate
+
+
+Q1 (h) In machine learning what is the difference between hyperparameters and other parameters? Give an example of each.(4 marks)
+
+Model parameters — estimated by the learning algorithm, learned from the training data during the training process.e.g.: ◦	Coefficients in linear models / weights in neural net / Conditional probabilities in Naive Bayes / Support vectors in SVM.
+
+Hyperparameters — set by hand, e.g. k in k-Nearest Neighbour / max_depth in a Decision Tree/ 	[split] criterion: ('gini' or 'entropy') in a Decision Tree / 	α learning rate in Gradient Descent.
+
+
+Q1 (i) Why is it not possible to use k-Means clustering with categorical data?
+
+k-Means cannot be used with categorical data because the algorithm requires computing a centroid at each iteration — the mean of all instances assigned to a cluster. It is not possible to calculate a mean for categorical values (e.g. the mean of {Irish, French, Italian} is undefined). Without valid centroids, the algorithm cannot assign instances to clusters or iterate to convergence.
+
+====================================================================================
+Q2 (a) You have been asked to build a classifier that will predict whether an indi vidual should qualify for a credit card or not. You have been provided with lists of individuals who have already applied for credit cards along with their outcome, whether they were awarded a credit card or not. You have been told that the key characteristics of the individual that are typically used to determine the outcome include Age, their employment status (i.e. employed or not), and whether they are a home owner or not. Describe how you will build a Naive Bayes classifier which can be used to predict the outcome. - (10 marks)
+
+Q2(a) — Building a Naïve Bayes Classifier for Credit Card Qualification
+
+Step 1 — Define the Problem
+
+Target feature: Credit Card Outcome = {Approved, Denied}
+Descriptive features: Age (continuous), Employment Status (Yes/No), Home Owner (Yes/No)
+Binary classification problem — Naïve Bayes is an eager learner — model built once at training time
+Naïve assumption: All descriptive features are conditionally independent given the class:
+
+
+P(Employed=Yes AND HomeOwner=Yes | Approved) = P(Employed=Yes|Approved) × P(HomeOwner=Yes|Approved)
+
+
+Step 2 — Preprocessing
+
+Age is continuous — must be discretised into bins before applying NB as we cannot calculate P(Age=27.5|Approved) for every possible value
+e.g. Age = {Young: <30, Middle: 30–50, Senior: >50}
+Employment Status and Home Owner are already categorical — no transformation needed. NB works by counting occurrences directly — it does not calculate distances or multiply weights so numerical conversion is not required
+Perform 80/20 train/test split — test data must never be used in training or preprocessing
+
+
+Step 3 — Calculate Prior Probabilities from Training Data
+The prior is the baseline probability of each class before seeing any features:
+
+P(Approved) = number of approved applicants / total applicants
+P(Denied) = number of denied applicants / total applicants
+
+Example: if 600 of 1000 applicants were approved:
+
+P(Approved) = 600/1000 = 0.6
+P(Denied) = 400/1000 = 0.4
+
+
+Step 4 — Calculate Likelihood Probabilities
+For every feature value and every class, count occurrences in training data:
+
+P(Employed=Yes | Approved) = count(Employed=Yes AND Approved) / count(Approved)
+P(Employed=No | Approved) = count(Employed=No AND Approved) / count(Approved)
+P(HomeOwner=Yes | Approved) = count(HomeOwner=Yes AND Approved) / count(Approved)
+P(Age=Young | Approved) = count(Age=Young AND Approved) / count(Approved)
+P(Age=Middle | Approved) = count(Age=Middle AND Approved) / count(Approved)
+P(Age=Senior | Approved) = count(Age=Senior AND Approved) / count(Approved)
+
+Repeat all of the above for the Denied class.
+Note: All probabilities for a feature given a class must sum to 1:
+
+P(Young|Approved) + P(Middle|Approved) + P(Senior|Approved) = 1.0
+
+
+Step 5 — Apply Laplace Smoothing
+Applied to all features as a standard safeguard — not just continuous ones. Prevents zero probability for any feature value not seen with a particular class in training:
+
+P(feature=v | class) = (count + 1) / (total + number of possible values)
+
+Without this, a single unseen combination multiplies the entire posterior to zero — destroying the prediction. For example:
+
+P(HomeOwner=Yes | Denied) = 0 → entire P(Denied|query) = 0 — incorrect
+
+
+Step 6 — Making a Prediction for a New Query
+For a new applicant (e.g. Employed=Yes, HomeOwner=No, Age=Young) apply Bayes Theorem:
+
+P(h|D) = P(D|h) × P(h) / P(D)
+
+Expanding using the Naïve assumption — multiply likelihoods for each feature independently:
+
+P(Approved|query) ∝ P(Approved) × P(Employed=Yes|Approved) × P(HomeOwner=No|Approved) × P(Age=Young|Approved)
+P(Denied|query) ∝ P(Denied) × P(Employed=Yes|Denied) × P(HomeOwner=No|Denied) × P(Age=Young|Denied)
+
+Note: P(D) — the evidence — is identical for both classes so can be ignored in the comparison. We only need the numerator.
+Each new feature is new evidence that updates the probability — exactly like the medical diagnosis example where a positive test updates P(Disease), or the Monty Hall problem where the host opening a door updates P(prize location).
+
+Step 7 — MAP Decision Rule
+Apply the Maximum A Posteriori (MAP) decision rule — assign the query to the class with the highest posterior probability:
+
+M_MAP(q) = argmax꜀ [ P(t=c) × Π P(qᵢ | t=c) ]
+
+Where:
+
+argmax꜀ = find the class c that maximises the expression
+P(t=c) = prior probability of class c
+Π P(qᵢ|t=c) = product of all feature likelihoods given class c
+
+In plain terms:
+
+If P(Approved|query) > P(Denied|query) → predict Approved
+If P(Denied|query) > P(Approved|query) → predict Denied
+
+
+Step 8 — Evaluate the Model
+
+Run predictions on held-out test set (never seen during training)
+Evaluate using confusion matrix, accuracy, precision and recall
+Use k-fold cross validation for a more stable and accurate estimate of generalisation accuracy
+Check for data leakage — ensure all preprocessing (binning, smoothing) was fitted on training data only
+Q2 (b) i. If you have a collection of 3 green balls and 5 red balls and you add 2 green balls to the collection what happens to the entropy of the collection?
+ii. Entropy is used in training a decision tree. Explain how it is used. (4 marks)
+
+
+Claude Shannon introduced the concept of information theory in 1948. 
+
+where mosyly one class => more certainty of outcome... so addition of two green balls means increase uncertainty / decrease in probability = >> INcreae in entropy >> a 50/50 chance now of gettign either red or green balls...
+max entropuy for two classes  = 1
+pure node  = 0 bits uncertainty
+50/50 = 1 bit uncertainty
+H(D) = - sum (P(ti) x log p(ti)
+
+In DTs entropy is used to calcualte Information Gain(IG) > IG  = (Oiginal Entropy  - Entropy after split), so has the level of uncertainty of chaso increased or decrased because of a split. and the resultant decision on a slpit is determined by the highest value of IG available.
+if IG  = 0  => no ifirmatio gain > no poitn in plsitting
+if IG higer => better split optin
+
+At each step of building the tree, we calculate the Information Gain for every available feature:
+IG(d, D) = H(D) − rem(d, D)
+rem(d, D) = Σᵢ (|Dᵢ| / |D|) × H(Dᵢ)
+The feature with the highest IG is selected as the split. This continues recursively until nodes are pure (entropy = 0), no features remain, or a stopping criterion is met.
+
+Q2(c)
+Naive Bayes classifiers and decision trees are eager learners, explain what is meant by the term “eager learner”. What is the difference between an eager and a lazy learner? Give an example of a lazy learner and discuss a scenario where a lazy learner may be more beneficial than an eager learner. (12 marks)
+
+•	Eager Learner
+o	Model bult once at training time and stored
+o	Query arrives > model immediately applied so get efficient fast predictions
+o	e.gs  = DTs/NB/NN/Lin Regression
+•	Lazy learner
+o	Stores entire training dataset in memory
+o	No generalisation made until query arrives
+o	model is bult at query time / classification time
+o	built during training time
+o	all computation happens at query time…
+	e.g. kNN / K-means
+•	scenario where lazy learner is more beneficial…
+•	1) where data changes over time.. don’t have to re-train the model i.e. data distribution may change, we may have concept drift. KNN adapts naturally as all data store dlocally and doesn’t need to -re-train. DT would need to be re-trained from scratch as data has changed… change of data  / change of problem..
+•	2)Target fuinctin is complesx and aries across different regions of the feature space
+•	Trade offs
+•	Eager >> fast at query time / slow to train / fixed model
+•	Lazy >> slow at query time / no training costs / adapts easily to new data / high memory usage
+================================================================
+
+Q3.(a) What is the role for confusion matrices in the evaluation of machine learning classifiers? What insights might be offered from examining a confusion matrix that might not come from considering the misclassification rate only? - (8 marks)
+
+the confusion matrix  is a table putput which details the Actuals vs Predicted score, how many they got for each setting there rea 4 possible metrics 
+True Positive - actual positive  / predicted  positive 
+True Negative - Actual Negative / Predicted negative
+Fale Positive - Actual Neegative  / Predicted Positive
+False Negative - Actual Positive / predicted Negative
+From it we cna determine hwo accurately the model predicted the classes
+
+2. The second part of the question is almost entirely missing
+"What insights might be offered from examining a confusion matrix that might not come from considering the misclassification rate only?"
+This is worth several marks on its own. Key points needed:
+
+Misclassification rate is a single number — it tells you the overall error rate but hides important detail
+Confusion matrix reveals class specific errors — which classes are being confused with which
+Class imbalance problem — misclassification rate can be misleading with imbalanced datasets
+Different costs of errors — FP and FN often have very different real world consequences
+Precision and Recall can only be calculated from the confusion matrix
+
+
+A complete 8 mark answer:
+
+The confusion matrix summarises classifier performance by comparing actual vs predicted class labels across all instances in the test set. It produces four metrics:
+
+TP: Correctly predicted positive
+TN: Correctly predicted negative
+FP: Predicted positive but actually negative (Type I error)
+FN: Predicted negative but actually positive (Type II error)
+
+
+
+Insights beyond misclassification rate:
+1. Class specific errors: Misclassification rate is a single overall number — it does not reveal which classes are being confused. For example a model may classify all negative cases perfectly but fail completely on positive cases — the misclassification rate could still look acceptable
+2. Class imbalance: If 95% of instances are class A and 5% are class B, a model that always predicts class A achieves 95% accuracy — but the confusion matrix immediately reveals it never correctly predicts class B
+3. Different costs of errors: FP and FN have very different real world consequences:
+
+Medical diagnosis: FN is catastrophic — missing a real disease is far worse than a false alarm
+Spam filter: FP is costly — marking legitimate email as spam loses important messages
+Misclassification rate treats both errors equally — confusion matrix separates them
+
+4. Enables Precision and Recall calculation:
+
+Precision = TP / (TP + FP) — of all predicted positive, how many were correct?
+Recall = TP / (TP + FN) — of all actual positives, how many did we find?
+Neither can be calculated from misclassification rate alone
+
+
+---------------------
+Q2 (b) What is the difference between precision and recall? Discuss one scenario (7 marks)
+when precision may be more appropriate to use than recall.
+
+TP = Act Pos / Pred Pos
+TN = Act Neg / Pred Neg
+FP = Act Neg / Pred Pos (Type 1 error) - Use Precision when false positives are costly i.e. stock market prediction  / Netflix recomendations a few veyrrelevant rather than loads of barely relevant)Spam  - precision if worried about losing correct emails)
+FN = Act Pos / Pred Neg *Tupe 2 error) - use recal when fale negatives are costly - ie.e medical diagnosis  / (Spam  - recall if worried about any span gettign through)
+
+Precision  = TP / (TP+FP) - of all predicted positive - how many dd we get right
+Recall = TP/(TP+FN) - of all that was actual positive how many did we get right?
+
+In stock market prediction, the model predicts whether to buy a stock or not. A False Positive occurs when the model predicts a stock will increase in value but it actually decreases — resulting in a bad investment and financial loss. In this scenario Precision is more important than Recall — we want to be highly confident that every stock we recommend buying is actually going to perform well. Missing some good stocks (False Negatives / low Recall) is acceptable — but recommending bad stocks (False Positives / low Precision) is financially damaging. Therefore we optimise for Precision.
+
+
+-------------
+
+Q2 (c) An important principle in evaluating machine learning models is that the test data should be be accessed in the model training process because it can result in unrealistic estimate of generalisation accuracy. This applies to the data pre-processing pipeline as well as the model fitting itself. In practice, some scenarios are more serious that other; comment on the seriousness of each of the following scenarios:
+(i) The test data is included during the feature selection process.
+this us fine, all we are doing is determine and using ppop ot some ther pythin code to crate a new data structure inot which we separate our test data.
+(ii) The test data is included when fitting a One-Hot-Encoder
+split first then pro-processing ie. ipmpute / scale, , feature selection -- here model has learned ff the test data here so may get overly optimistci generalizatuin scores....
+(iii) Missing values are replaced using the mean values for features across both training and test sets, i.e the test data is used when the means are being calculated
+wost case  - trainig data has learned test data valeus to calcuatel the traing data.. invalid accuracy score and overly optimistoc generalisatin cores would be the result....
+
+
+(i) Most serious — Feature Selection
+Including test data in feature selection means features are chosen based on their ability to predict both training AND test instances. This is direct data leakage into the model building process — the selected features are optimised for the test set giving a heavily inflated estimate of generalisation accuracy. In real deployment on truly unseen data the model will perform significantly worse.
+
+
+(ii) Moderate — One-Hot-Encoder
+If the encoder is fitted on all data including test set, it learns category values that may only appear in test data. This gives the model a slight advantage when predicting test instances. Less serious than feature selection as it does not directly involve the target variable — but still produces an overly optimistic accuracy estimate.
+
+
+(iii) Least serious — Mean Imputation
+Using the mean across both training and test data causes minimal leakage. The mean value of a feature changes very slightly when a small test set is included. The resulting inflation in accuracy is negligible compared to the other scenarios. Still technically incorrect and should be avoided — the imputer should always be fitted on training data only then applied separately to test data
+
+(9 marks)
+
+Q2 (d) When compared with hold-out testing, cross validation testing can provide estimates of generalisation accuracy that are 
+(i) more accurate and 
+(ii) more stable. 
+Explain both of these claims.
+
+(8 marks)
+
+Hold-out testing splits data into a fixed train and test set (e.g. 80/20). The model is trained once and tested once — fast but the result depends heavily on how the split falls. A lucky or unlucky split can give a misleadingly high or low accuracy estimate.
+k-fold Cross Validation divides data into k equal folds (typically 5 or 10). The model is trained k times — each time using k-1 folds for training and 1 fold for testing. The final accuracy is the mean of all k accuracy scores.
+
+
+(i) More Accurate:
+In hold-out testing, some instances never appear in the test set at all. In k-fold cross validation, every instance is used for testing exactly once across the k iterations. This means the accuracy estimate is based on the full dataset — giving a more representative and accurate estimate of how the model will generalise to truly unseen data. It is not dependent on one particular lucky or unlucky split.
+
+
+(ii) More Stable:
+Hold-out produces a single accuracy value from one split — this has high variance and could vary significantly if the split was done differently. Cross validation produces k accuracy values which are averaged to give the final estimate. Averaging across k runs reduces variance — extreme results in any one fold are balanced out by the others. The resulting estimate is much more stable and consistent regardless of how the data happens to be divided.
+
+================================================================================
+
+4. (a) i. The curse of dimensionality in machine learning is one reason to reduce the dimensionality in a dataset. Explain the curse of dimensionality and give two other benefits of reducing dimensionality.  (7 marks)
+
+bellman.1961. many ml models perform poorly in high domensionality > plot of classifier performance  y axis and number of dimensions, with peak peformance a optimal # if fatures, then shapr drop ff in performance
+ad dimensions increase  - data points get exponentially sparser >> plot of 2 d box with data points and 3 d boxes with data points more spread out into 3d. so we get high demensino data with fewer dimensions.
+better performance/efficiency  from the models...
+kNN performes poorly iwht high dimensinslaity.. more calculations >> more cmpute required...
+DT.. more memory as all traing data get sstored in memory...
+lower financial cost, takes less time/copute
+more interpretable... more dimensions harder to explain the predictions
+less noise... removing redundant features improve model performance...
+
+
+ 
+ii. You have been asked to train a model on a text dataset that has high dimensionality and is sparse. Explain how you would reduce the dimensionality of the dataset and identify the best subset of features to use.
+
+
+Why Text Data is High Dimensional and Sparse
+Text data is inherently high dimensional because the Bag of Words representation creates one feature (column) for every unique word across the entire document corpus. A dataset with 10,000 unique words creates 10,000 features. It is sparse because any individual document only contains a small subset of those words — most feature values are zero. For example a document with 50 words in a 10,000 word vocabulary has 9,950 zero values.
+
+Step 1 — TF-IDF Weighting (Text Specific Preprocessing)
+Before feature selection, apply TF-IDF (Term Frequency — Inverse Document Frequency) weighting to reduce the impact of uninformative words:
+
+TF-IDF(t, d) = TF(t,d) × IDF(t)
+IDF(t) = log(|D| / |{d ∈ D : t ∈ d}|)
+
+Where:
+
+TF = how often term t appears in document d
+IDF = log of total documents divided by documents containing term t
+
+This penalises words that appear in almost every document (e.g. "the", "and") as they carry no discriminative power, and rewards words that appear frequently in some documents but rarely across the corpus — these are the most informative features.
+
+Word appears in every document → IDF ≈ 0 → low TF-IDF → not useful
+Word appears in a few documents → high IDF → high TF-IDF → informative
+
+
+Step 2 — Filter Method (Reduce Dimensions)
+Apply Information Gain (Mutual Information) as a filter to rank all remaining features by their individual predictive power for the target class:
+
+IG(d, D) = H(D) − rem(d, D)
+
+
+Score every word/token by how much it reduces entropy of the target variable
+Rank all features by IG score
+Keep the top k features — discard the rest
+Fast and computationally efficient — important given the high dimensionality of text data
+Does not depend on any specific classifier — can be applied before model selection
+
+This significantly reduces the feature space from potentially tens of thousands of words down to the most informative subset.
+
+Step 3 — Wrapper Method (Identify Best Subset)
+Once the feature space is reduced by the filter, apply a Wrapper method to identify the optimal combination of features:
+
+Sequential Forward Selection (SFS): Start with zero features, add one feature at a time — the feature that most improves model accuracy is added at each step
+Sequential Backward Selection (SBS): Start with all remaining features, remove one at a time — the feature whose removal least reduces accuracy is dropped at each step
+
+Wrappers evaluate feature combinations rather than individual features — they can detect when two features work better together than either does alone. Each subset is evaluated using cross-validation to avoid data leakage.
+
+⚠️ Wrappers are computationally expensive — this is why the filter step is applied first to reduce the feature space before wrapping
+
+
+Step 4 — Optional: PCA for Further Transformation
+If dimensionality remains high after filter and wrapper selection, apply Principal Component Analysis (PCA):
+
+Unsupervised projection method — no target variable needed
+Projects data onto eigenvectors of the covariance matrix
+Eigenvalues indicate the importance of each component — how much variance it captures
+First principal component captures maximum variance; each subsequent component captures less
+Retains the most informative structure of the data in far fewer dimensions
+
+
+Note: PCA does not retain original features — it creates new composite dimensions. This reduces interpretability but maximises variance preservation.
+
+
+---------
+
+i. Diversity is important in ensemble learning. Bagging (bootstrap aggregation) has a mechanism for achieving diversity; explain how it works. - (6 marks) 
+ii. Bagging will not produce diversity in ensembles of nearest-neighbour classifiers; describe a process that will. (4 marks)
+iii. Explain what differentiates the different ensemble members in a boosting  ensemble. (6 marks)
